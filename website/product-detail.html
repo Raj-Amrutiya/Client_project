@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Detail - ShopVerse</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/navbar.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="announcement-bar">
+        <div class="announcement-content">
+            <span><i class="fas fa-truck"></i> Free Shipping on orders above ₹999</span>
+        </div>
+    </div>
+
+    <header class="main-header" id="mainHeader">
+        <div class="header-container">
+            <div class="logo"><a href="index.html"><span class="logo-icon"><i class="fas fa-shopping-bag"></i></span><span class="logo-text">Shop<span class="logo-accent">Verse</span></span></a></div>
+            <nav class="main-nav" id="mainNav">
+                <ul class="nav-links">
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="products.html">Shop</a></li>
+                    <li><a href="about.html">About</a></li>
+                    <li><a href="contact.html">Contact</a></li>
+                </ul>
+            </nav>
+            <div class="header-actions">
+                <div class="search-toggle" id="searchToggle"><i class="fas fa-search"></i></div>
+                <div class="user-menu" id="userMenu">
+                    <i class="fas fa-user"></i>
+                    <div class="user-dropdown" id="userDropdown">
+                        <div class="auth-links" id="authLinks"><a href="login.html"><i class="fas fa-sign-in-alt"></i> Login</a><a href="register.html"><i class="fas fa-user-plus"></i> Register</a></div>
+                        <div class="user-links" id="userLinks" style="display:none;"><a href="profile.html"><i class="fas fa-user-circle"></i> Profile</a><a href="orders.html"><i class="fas fa-box"></i> Orders</a><a href="#" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</a></div>
+                    </div>
+                </div>
+                <a href="wishlist.html" class="wishlist-icon"><i class="fas fa-heart"></i><span class="wishlist-count" id="wishlistCount">0</span></a>
+                <a href="cart.html" class="cart-icon"><i class="fas fa-shopping-cart"></i><span class="cart-count" id="cartCount">0</span></a>
+                <div class="mobile-toggle" id="mobileToggle"><span></span><span></span><span></span></div>
+            </div>
+        </div>
+        <div class="search-overlay" id="searchOverlay">
+            <div class="search-container">
+                <input type="text" id="searchInput" placeholder="Search products..." autocomplete="off">
+                <button id="searchBtn"><i class="fas fa-search"></i></button>
+                <button class="search-close" id="searchClose"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="search-suggestions" id="searchSuggestions"></div>
+        </div>
+    </header>
+
+    <div class="breadcrumb">
+        <div class="container">
+            <a href="index.html">Home</a> <i class="fas fa-chevron-right"></i>
+            <a href="products.html">Products</a> <i class="fas fa-chevron-right"></i>
+            <span id="breadcrumbProduct">Product</span>
+        </div>
+    </div>
+
+    <!-- Product Detail -->
+    <section class="product-detail-section">
+        <div class="container">
+            <div class="product-detail" id="productDetail">
+                <div class="loading-spinner"><div class="spinner"></div><p>Loading product...</p></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Reviews Section -->
+    <section class="section reviews-section">
+        <div class="container" id="reviewsContainer"></div>
+    </section>
+
+    <!-- Related Products -->
+    <section class="section related-section">
+        <div class="container">
+            <div class="section-header">
+                <h2>You May Also Like</h2>
+            </div>
+            <div class="products-grid" id="relatedProducts"></div>
+        </div>
+    </section>
+
+    <div id="footer"></div>
+
+    <button class="back-to-top" id="backToTop"><i class="fas fa-arrow-up"></i></button>
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/cart.js"></script>
+    <script src="js/script.js"></script>
+    <script src="js/product-detail.js"></script>
+</body>
+</html>

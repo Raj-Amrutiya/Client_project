@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Orders - ShopVerse</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/navbar.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="announcement-bar">
+        <div class="announcement-content"><span><i class="fas fa-truck"></i> Free Shipping on orders above ₹999</span></div>
+    </div>
+    <header class="main-header" id="mainHeader">
+        <div class="header-container">
+            <div class="logo"><a href="index.html"><span class="logo-icon"><i class="fas fa-shopping-bag"></i></span><span class="logo-text">Shop<span class="logo-accent">Verse</span></span></a></div>
+            <nav class="main-nav" id="mainNav">
+                <ul class="nav-links">
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="products.html">Shop</a></li>
+                    <li><a href="about.html">About</a></li>
+                    <li><a href="contact.html">Contact</a></li>
+                </ul>
+            </nav>
+            <div class="header-actions">
+                <a href="cart.html" class="cart-icon"><i class="fas fa-shopping-cart"></i><span class="cart-count" id="cartCount">0</span></a>
+                <div class="mobile-toggle" id="mobileToggle"><span></span><span></span><span></span></div>
+            </div>
+        </div>
+    </header>
+
+    <div class="breadcrumb"><div class="container"><a href="index.html">Home</a> <i class="fas fa-chevron-right"></i> <span>My Orders</span></div></div>
+
+    <section class="orders-section">
+        <div class="container">
+            <h1 class="page-title"><i class="fas fa-box"></i> My Orders</h1>
+            <div class="orders-filter">
+                <button class="filter-btn active" data-status="all">All Orders</button>
+                <button class="filter-btn" data-status="pending">Pending</button>
+                <button class="filter-btn" data-status="processing">Processing</button>
+                <button class="filter-btn" data-status="shipped">Shipped</button>
+                <button class="filter-btn" data-status="delivered">Delivered</button>
+            </div>
+            <div class="orders-list" id="ordersListPage"></div>
+            <div class="empty-state" id="emptyOrders" style="display:none;">
+                <i class="fas fa-box-open"></i>
+                <h2>No orders yet</h2>
+                <p>Start shopping to see your orders here.</p>
+                <a href="products.html" class="btn btn-primary">Start Shopping</a>
+            </div>
+        </div>
+    </section>
+
+    <div id="footer"></div>
+
+    <button class="back-to-top" id="backToTop"><i class="fas fa-arrow-up"></i></button>
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/cart.js"></script>
+    <script src="js/script.js"></script>
+    <script src="js/orders.js"></script>
+</body>
+</html>

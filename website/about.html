@@ -3,10 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<<<<<<< HEAD
     <title>About - Our Company</title>
+=======
+    <title>About Us - ShopVerse</title>
+>>>>>>> origin/main
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/navbar.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
+<<<<<<< HEAD
     <header>
         <h1>About Us</h1>
         <nav>
@@ -27,5 +36,177 @@
     <footer>
         <p>&copy; 2026 Our Company. All rights reserved.</p>
     </footer>   
+=======
+    <div class="announcement-bar">
+        <div class="announcement-content"><span><i class="fas fa-truck"></i> Free Shipping on orders above ₹999</span></div>
+    </div>
+
+    <header class="main-header" id="mainHeader">
+        <div class="header-container">
+            <div class="logo"><a href="index.html"><span class="logo-icon"><i class="fas fa-shopping-bag"></i></span><span class="logo-text">Shop<span class="logo-accent">Verse</span></span></a></div>
+            <nav class="main-nav" id="mainNav">
+                <ul class="nav-links">
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="products.html">Shop</a></li>
+                    <li><a href="about.html" class="active">About</a></li>
+                    <li><a href="contact.html">Contact</a></li>
+                </ul>
+            </nav>
+            <div class="header-actions">
+                <div class="user-menu" id="userMenu">
+                    <i class="fas fa-user"></i>
+                    <div class="user-dropdown" id="userDropdown">
+                        <div class="auth-links" id="authLinks"><a href="login.html"><i class="fas fa-sign-in-alt"></i> Login</a><a href="register.html"><i class="fas fa-user-plus"></i> Register</a></div>
+                        <div class="user-links" id="userLinks" style="display:none;"><a href="profile.html"><i class="fas fa-user-circle"></i> Profile</a><a href="orders.html"><i class="fas fa-box"></i> Orders</a><a href="#" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</a></div>
+                    </div>
+                </div>
+                <a href="cart.html" class="cart-icon"><i class="fas fa-shopping-cart"></i><span class="cart-count" id="cartCount">0</span></a>
+                <div class="mobile-toggle" id="mobileToggle"><span></span><span></span><span></span></div>
+            </div>
+        </div>
+    </header>
+
+    <div class="breadcrumb"><div class="container"><a href="index.html">Home</a> <i class="fas fa-chevron-right"></i> <span>About Us</span></div></div>
+
+    <!-- Hero Banner -->
+    <section class="about-hero" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 80px 0; text-align: center;">
+        <div class="container">
+            <h1 style="font-size: 3rem; margin-bottom: 15px;">About ShopVerse</h1>
+            <p style="font-size: 1.2rem; max-width: 600px; margin: 0 auto; opacity: 0.9;">Your trusted destination for premium products at unbeatable prices. We've been serving customers since 2020.</p>
+        </div>
+    </section>
+
+    <!-- Our Story -->
+    <section class="section" style="padding: 60px 0;">
+        <div class="container">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 50px; align-items: center;">
+                <div>
+                    <h2 style="font-size: 2rem; margin-bottom: 20px; color: var(--primary-color, #667eea);">Our Story</h2>
+                    <p style="line-height: 1.8; margin-bottom: 15px; color: #555;">ShopVerse was founded with a simple mission — to make premium quality products accessible to everyone. What started as a small online store has grown into a thriving e-commerce platform serving thousands of happy customers across India.</p>
+                    <p style="line-height: 1.8; margin-bottom: 15px; color: #555;">We believe that everyone deserves access to great products without breaking the bank. That's why we work directly with manufacturers and brands to bring you the best deals possible.</p>
+                    <p style="line-height: 1.8; color: #555;">From electronics to fashion, home essentials to books — we curate every product with care, ensuring quality and value in every purchase.</p>
+                </div>
+                <div style="text-align: center;">
+                    <img src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=500" alt="Our Story" style="border-radius: 15px; max-width: 100%; box-shadow: 0 10px 30px rgba(0,0,0,0.1);" loading="lazy">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats -->
+    <section style="background: #f8f9fa; padding: 60px 0;">
+        <div class="container">
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 30px; text-align: center;">
+                <div style="padding: 30px;">
+                    <div style="font-size: 2.5rem; font-weight: 800; color: var(--primary-color, #667eea);">10K+</div>
+                    <p style="color: #666; margin-top: 5px;">Happy Customers</p>
+                </div>
+                <div style="padding: 30px;">
+                    <div style="font-size: 2.5rem; font-weight: 800; color: var(--primary-color, #667eea);">5K+</div>
+                    <p style="color: #666; margin-top: 5px;">Products</p>
+                </div>
+                <div style="padding: 30px;">
+                    <div style="font-size: 2.5rem; font-weight: 800; color: var(--primary-color, #667eea);">50+</div>
+                    <p style="color: #666; margin-top: 5px;">Brands</p>
+                </div>
+                <div style="padding: 30px;">
+                    <div style="font-size: 2.5rem; font-weight: 800; color: var(--primary-color, #667eea);">4.8★</div>
+                    <p style="color: #666; margin-top: 5px;">Customer Rating</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Why Choose Us -->
+    <section class="section" style="padding: 60px 0;">
+        <div class="container">
+            <div style="text-align: center; margin-bottom: 40px;">
+                <h2 style="font-size: 2rem; margin-bottom: 10px;">Why Choose ShopVerse?</h2>
+                <p style="color: #666;">Here's what sets us apart from the rest</p>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px;">
+                <div style="text-align: center; padding: 30px; border-radius: 12px; background: white; box-shadow: 0 5px 20px rgba(0,0,0,0.08);">
+                    <i class="fas fa-gem" style="font-size: 2.5rem; color: var(--primary-color, #667eea); margin-bottom: 15px;"></i>
+                    <h3 style="margin-bottom: 10px;">Premium Quality</h3>
+                    <p style="color: #666; line-height: 1.6;">Every product is carefully vetted and tested to ensure the highest quality standards.</p>
+                </div>
+                <div style="text-align: center; padding: 30px; border-radius: 12px; background: white; box-shadow: 0 5px 20px rgba(0,0,0,0.08);">
+                    <i class="fas fa-tags" style="font-size: 2.5rem; color: var(--primary-color, #667eea); margin-bottom: 15px;"></i>
+                    <h3 style="margin-bottom: 10px;">Best Prices</h3>
+                    <p style="color: #666; line-height: 1.6;">We work directly with brands to bring you unbeatable prices, always.</p>
+                </div>
+                <div style="text-align: center; padding: 30px; border-radius: 12px; background: white; box-shadow: 0 5px 20px rgba(0,0,0,0.08);">
+                    <i class="fas fa-shipping-fast" style="font-size: 2.5rem; color: var(--primary-color, #667eea); margin-bottom: 15px;"></i>
+                    <h3 style="margin-bottom: 10px;">Fast Delivery</h3>
+                    <p style="color: #666; line-height: 1.6;">Get your orders delivered quickly with our efficient logistics network.</p>
+                </div>
+                <div style="text-align: center; padding: 30px; border-radius: 12px; background: white; box-shadow: 0 5px 20px rgba(0,0,0,0.08);">
+                    <i class="fas fa-headset" style="font-size: 2.5rem; color: var(--primary-color, #667eea); margin-bottom: 15px;"></i>
+                    <h3 style="margin-bottom: 10px;">24/7 Support</h3>
+                    <p style="color: #666; line-height: 1.6;">Our dedicated support team is always ready to help you with any queries.</p>
+                </div>
+                <div style="text-align: center; padding: 30px; border-radius: 12px; background: white; box-shadow: 0 5px 20px rgba(0,0,0,0.08);">
+                    <i class="fas fa-undo" style="font-size: 2.5rem; color: var(--primary-color, #667eea); margin-bottom: 15px;"></i>
+                    <h3 style="margin-bottom: 10px;">Easy Returns</h3>
+                    <p style="color: #666; line-height: 1.6;">Not happy? Return any product within 30 days for a full refund.</p>
+                </div>
+                <div style="text-align: center; padding: 30px; border-radius: 12px; background: white; box-shadow: 0 5px 20px rgba(0,0,0,0.08);">
+                    <i class="fas fa-shield-alt" style="font-size: 2.5rem; color: var(--primary-color, #667eea); margin-bottom: 15px;"></i>
+                    <h3 style="margin-bottom: 10px;">Secure Shopping</h3>
+                    <p style="color: #666; line-height: 1.6;">Shop with confidence — your data and payments are always protected.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Team Section -->
+    <section style="background: #f8f9fa; padding: 60px 0;">
+        <div class="container">
+            <div style="text-align: center; margin-bottom: 40px;">
+                <h2 style="font-size: 2rem; margin-bottom: 10px;">Meet Our Team</h2>
+                <p style="color: #666;">The people behind ShopVerse</p>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px;">
+                <div style="text-align: center; padding: 30px; background: white; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.05);">
+                    <div style="width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, #667eea, #764ba2); color: white; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: 700; margin: 0 auto 15px;">R</div>
+                    <h3>Raj Kumar</h3>
+                    <p style="color: var(--primary-color, #667eea); margin-bottom: 10px;">Founder & CEO</p>
+                    <p style="color: #666; font-size: 0.9rem;">Passionate about bringing the best products to every doorstep in India.</p>
+                </div>
+                <div style="text-align: center; padding: 30px; background: white; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.05);">
+                    <div style="width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, #f093fb, #f5576c); color: white; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: 700; margin: 0 auto 15px;">A</div>
+                    <h3>Anita Sharma</h3>
+                    <p style="color: var(--primary-color, #667eea); margin-bottom: 10px;">Head of Operations</p>
+                    <p style="color: #666; font-size: 0.9rem;">Ensures smooth operations and timely delivery for every order.</p>
+                </div>
+                <div style="text-align: center; padding: 30px; background: white; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.05);">
+                    <div style="width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, #4facfe, #00f2fe); color: white; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: 700; margin: 0 auto 15px;">V</div>
+                    <h3>Vikram Singh</h3>
+                    <p style="color: var(--primary-color, #667eea); margin-bottom: 10px;">Tech Lead</p>
+                    <p style="color: #666; font-size: 0.9rem;">Building the technology that powers your seamless shopping experience.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 60px 0; text-align: center;">
+        <div class="container">
+            <h2 style="font-size: 2rem; margin-bottom: 15px;">Ready to Start Shopping?</h2>
+            <p style="margin-bottom: 25px; opacity: 0.9; font-size: 1.1rem;">Explore our collection of premium products at great prices.</p>
+            <a href="products.html" class="btn btn-primary btn-lg" style="background: white; color: #667eea; padding: 15px 40px; font-size: 1.1rem; border-radius: 8px; text-decoration: none; display: inline-block; font-weight: 600;">Browse Products <i class="fas fa-arrow-right"></i></a>
+        </div>
+    </section>
+
+    <div id="footer"></div>
+
+    <button class="back-to-top" id="backToTop"><i class="fas fa-arrow-up"></i></button>
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/cart.js"></script>
+    <script src="js/script.js"></script>
+>>>>>>> origin/main
 </body>
 </html>

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout - ShopVerse</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/navbar.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="main-header checkout-header">
+        <div class="header-container">
+            <div class="logo"><a href="index.html"><span class="logo-icon"><i class="fas fa-shopping-bag"></i></span><span class="logo-text">Shop<span class="logo-accent">Verse</span></span></a></div>
+            <div class="checkout-steps">
+                <div class="step active" data-step="1"><span class="step-num">1</span> Shipping</div>
+                <div class="step" data-step="2"><span class="step-num">2</span> Payment</div>
+                <div class="step" data-step="3"><span class="step-num">3</span> Confirm</div>
+            </div>
+            <div class="secure-badge"><i class="fas fa-lock"></i> Secure Checkout</div>
+        </div>
+    </header>
+
+    <section class="checkout-section">
+        <div class="container">
+            <div class="checkout-layout">
+                <!-- Step 1: Shipping -->
+                <div class="checkout-form" id="checkoutForm">
+                    <div class="checkout-step active" id="step1">
+                        <h2><i class="fas fa-truck"></i> Shipping Information</h2>
+                        <form id="shippingForm">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="shipFirstName">First Name *</label>
+                                    <input type="text" id="shipFirstName" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="shipLastName">Last Name *</label>
+                                    <input type="text" id="shipLastName" required>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="shipEmail">Email *</label>
+                                <input type="email" id="shipEmail" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="shipPhone">Phone *</label>
+                                <input type="tel" id="shipPhone" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="shipAddress1">Address Line 1 *</label>
+                                <input type="text" id="shipAddress1" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="shipAddress2">Address Line 2</label>
+                                <input type="text" id="shipAddress2">
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="shipCity">City *</label>
+                                    <input type="text" id="shipCity" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="shipState">State *</label>
+                                    <input type="text" id="shipState" required>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="shipPostal">Postal Code *</label>
+                                    <input type="text" id="shipPostal" required pattern="[0-9]{6}">
+                                </div>
+                                <div class="form-group">
+                                    <label for="shipCountry">Country</label>
+                                    <input type="text" id="shipCountry" value="India" readonly>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-lg">Continue to Payment</button>
+                        </form>
+                    </div>
+
+                    <!-- Step 2: Payment -->
+                    <div class="checkout-step" id="step2">
+                        <h2><i class="fas fa-credit-card"></i> Payment Method</h2>
+                        <div class="payment-methods-select">
+                            <label class="payment-option active">
+                                <input type="radio" name="paymentMethod" value="cod" checked>
+                                <div class="payment-option-content">
+                                    <i class="fas fa-money-bill-wave"></i>
+                                    <span>Cash on Delivery</span>
+                                </div>
+                            </label>
+                            <label class="payment-option">
+                                <input type="radio" name="paymentMethod" value="card">
+                                <div class="payment-option-content">
+                                    <i class="fas fa-credit-card"></i>
+                                    <span>Credit / Debit Card</span>
+                                </div>
+                            </label>
+                            <label class="payment-option">
+                                <input type="radio" name="paymentMethod" value="upi">
+                                <div class="payment-option-content">
+                                    <i class="fas fa-mobile-alt"></i>
+                                    <span>UPI Payment</span>
+                                </div>
+                            </label>
+                        </div>
+
+                        <div class="card-form" id="cardForm" style="display:none;">
+                            <div class="form-group">
+                                <label>Card Number</label>
+                                <input type="text" id="cardNumber" placeholder="1234 5678 9012 3456" maxlength="19">
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Expiry</label>
+                                    <input type="text" id="cardExpiry" placeholder="MM/YY" maxlength="5">
+                                </div>
+                                <div class="form-group">
+                                    <label>CVV</label>
+                                    <input type="password" id="cardCvv" placeholder="123" maxlength="4">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Cardholder Name</label>
+                                <input type="text" id="cardName">
+                            </div>
+                        </div>
+
+                        <div class="upi-form" id="upiForm" style="display:none;">
+                            <div class="form-group">
+                                <label>UPI ID</label>
+                                <input type="text" id="upiId" placeholder="yourname@upi">
+                            </div>
+                        </div>
+
+                        <div class="checkout-nav">
+                            <button class="btn btn-outline" id="backToShipping">Back</button>
+                            <button class="btn btn-primary btn-lg" id="continueToConfirm">Review Order</button>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: Confirm -->
+                    <div class="checkout-step" id="step3">
+                        <h2><i class="fas fa-check-circle"></i> Order Review</h2>
+                        <div class="order-review" id="orderReview"></div>
+                        <div class="checkout-nav">
+                            <button class="btn btn-outline" id="backToPayment">Back</button>
+                            <button class="btn btn-primary btn-lg" id="placeOrderBtn"><i class="fas fa-lock"></i> Place Order</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Order Summary Sidebar -->
+                <div class="checkout-summary">
+                    <h3>Order Summary</h3>
+                    <div class="checkout-items" id="checkoutItems"></div>
+                    <div class="summary-row"><span>Subtotal</span><span id="checkSubtotal">₹0</span></div>
+                    <div class="summary-row"><span>Shipping</span><span id="checkShipping">₹0</span></div>
+                    <div class="summary-row discount-row" id="checkDiscountRow" style="display:none;"><span>Discount</span><span id="checkDiscount">-₹0</span></div>
+                    <div class="summary-total"><span>Total</span><span id="checkTotal">₹0</span></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Order Success Modal -->
+    <div class="modal-overlay" id="orderSuccessModal" style="display:none;">
+        <div class="modal-content success-modal">
+            <div class="success-icon"><i class="fas fa-check-circle"></i></div>
+            <h2>Order Placed Successfully!</h2>
+            <p>Your order number is <strong id="orderNumber"></strong></p>
+            <p>We'll send confirmation to your email.</p>
+            <div class="success-actions">
+                <a href="orders.html" class="btn btn-primary">View Orders</a>
+                <a href="products.html" class="btn btn-outline">Continue Shopping</a>
+            </div>
+        </div>
+    </div>
+
+    <div id="footer"></div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/cart.js"></script>
+    <script src="js/script.js"></script>
+    <script src="js/checkout.js"></script>
+</body>
+</html>

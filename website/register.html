@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - ShopVerse</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/navbar.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="main-header" id="mainHeader">
+        <div class="header-container">
+            <div class="logo"><a href="index.html"><span class="logo-icon"><i class="fas fa-shopping-bag"></i></span><span class="logo-text">Shop<span class="logo-accent">Verse</span></span></a></div>
+        </div>
+    </header>
+
+    <section class="auth-section">
+        <div class="auth-container">
+            <div class="auth-card">
+                <div class="auth-header">
+                    <h1>Create Account</h1>
+                    <p>Join ShopVerse for exclusive deals</p>
+                </div>
+                <form id="registerForm" class="auth-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="regFirstName">First Name *</label>
+                            <input type="text" id="regFirstName" name="first_name" placeholder="First name" required>
+                            <span class="error-msg" id="regFirstNameError"></span>
+                        </div>
+                        <div class="form-group">
+                            <label for="regLastName">Last Name *</label>
+                            <input type="text" id="regLastName" name="last_name" placeholder="Last name" required>
+                            <span class="error-msg" id="regLastNameError"></span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="regEmail"><i class="fas fa-envelope"></i> Email *</label>
+                        <input type="email" id="regEmail" name="email" placeholder="Enter your email" required>
+                        <span class="error-msg" id="regEmailError"></span>
+                    </div>
+                    <div class="form-group">
+                        <label for="regPhone"><i class="fas fa-phone"></i> Phone</label>
+                        <input type="tel" id="regPhone" name="phone" placeholder="Phone number">
+                    </div>
+                    <div class="form-group">
+                        <label for="regPassword"><i class="fas fa-lock"></i> Password *</label>
+                        <div class="password-input">
+                            <input type="password" id="regPassword" name="password" placeholder="Create password" required minlength="8">
+                            <button type="button" class="toggle-password"><i class="fas fa-eye"></i></button>
+                        </div>
+                        <div class="password-strength" id="passwordStrength">
+                            <div class="strength-bar"><div class="strength-fill"></div></div>
+                            <span class="strength-text"></span>
+                        </div>
+                        <span class="error-msg" id="regPasswordError"></span>
+                    </div>
+                    <div class="form-group">
+                        <label for="regConfirmPassword"><i class="fas fa-lock"></i> Confirm Password *</label>
+                        <div class="password-input">
+                            <input type="password" id="regConfirmPassword" name="confirm_password" placeholder="Confirm password" required>
+                            <button type="button" class="toggle-password"><i class="fas fa-eye"></i></button>
+                        </div>
+                        <span class="error-msg" id="regConfirmPasswordError"></span>
+                    </div>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="agreeTerms" name="terms" required>
+                        I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>
+                    </label>
+                    <button type="submit" class="btn btn-primary btn-block btn-lg">
+                        <span>Create Account</span>
+                        <div class="btn-loader" style="display:none;"><div class="spinner-small"></div></div>
+                    </button>
+                </form>
+                <div class="auth-divider"><span>or</span></div>
+                <div class="social-auth">
+                    <button class="btn btn-social btn-google"><i class="fab fa-google"></i> Google</button>
+                    <button class="btn btn-social btn-facebook"><i class="fab fa-facebook-f"></i> Facebook</button>
+                </div>
+                <p class="auth-switch">Already have an account? <a href="login.html">Login</a></p>
+            </div>
+            <div class="auth-image">
+                <img src="https://images.unsplash.com/photo-1607082349566-187342175e2f?w=600" alt="Shopping" loading="lazy">
+                <div class="auth-image-overlay">
+                    <h2>Join the ShopVerse Family</h2>
+                    <p>Get access to exclusive deals and offers</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div id="footer"></div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/cart.js"></script>
+    <script src="js/script.js"></script>
+    <script src="js/validation.js"></script>
+    <script src="js/register.js"></script>
+</body>
+</html>

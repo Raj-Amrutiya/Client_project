@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - ShopVerse</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="css/admin.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body class="admin-body">
+    <aside class="admin-sidebar" id="adminSidebar">
+        <div class="admin-logo">
+            <a href="index.html"><span class="logo-icon"><i class="fas fa-shopping-bag"></i></span><span class="logo-text">Shop<span class="logo-accent">Verse</span></span></a>
+            <small>Admin Panel</small>
+        </div>
+        <nav class="admin-nav">
+            <a href="#" class="admin-nav-item active" data-section="dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+            <a href="#" class="admin-nav-item" data-section="products"><i class="fas fa-box"></i> Products</a>
+            <a href="#" class="admin-nav-item" data-section="orders"><i class="fas fa-shopping-bag"></i> Orders</a>
+            <a href="#" class="admin-nav-item" data-section="customers"><i class="fas fa-users"></i> Customers</a>
+            <a href="#" class="admin-nav-item" data-section="categories"><i class="fas fa-tags"></i> Categories</a>
+            <a href="#" class="admin-nav-item" data-section="coupons"><i class="fas fa-ticket-alt"></i> Coupons</a>
+            <a href="#" class="admin-nav-item" data-section="reviews"><i class="fas fa-star"></i> Reviews</a>
+        </nav>
+        <div class="admin-sidebar-footer">
+            <a href="index.html"><i class="fas fa-store"></i> View Store</a>
+            <a href="#" id="adminLogout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </div>
+    </aside>
+
+    <main class="admin-main">
+        <header class="admin-header">
+            <button class="admin-toggle" id="adminToggle"><i class="fas fa-bars"></i></button>
+            <h2 id="adminPageTitle">Dashboard</h2>
+            <div class="admin-header-right">
+                <span id="adminUserName">Admin</span>
+                <div class="admin-avatar"><i class="fas fa-user-shield"></i></div>
+            </div>
+        </header>
+
+        <!-- Dashboard Section -->
+        <section class="admin-section active" id="sectionDashboard">
+            <div class="stats-grid">
+                <div class="stat-card stat-blue"><div class="stat-icon"><i class="fas fa-rupee-sign"></i></div><div class="stat-info"><h3 id="totalRevenue">₹0</h3><p>Total Revenue</p></div></div>
+                <div class="stat-card stat-green"><div class="stat-icon"><i class="fas fa-shopping-bag"></i></div><div class="stat-info"><h3 id="totalOrders">0</h3><p>Total Orders</p></div></div>
+                <div class="stat-card stat-orange"><div class="stat-icon"><i class="fas fa-box"></i></div><div class="stat-info"><h3 id="totalProducts">0</h3><p>Products</p></div></div>
+                <div class="stat-card stat-purple"><div class="stat-icon"><i class="fas fa-users"></i></div><div class="stat-info"><h3 id="totalCustomers">0</h3><p>Customers</p></div></div>
+            </div>
+            <div class="admin-grid">
+                <div class="admin-card"><h3>Recent Orders</h3><div class="table-responsive"><table class="admin-table" id="recentOrdersTable"><thead><tr><th>Order #</th><th>Customer</th><th>Total</th><th>Status</th><th>Date</th></tr></thead><tbody></tbody></table></div></div>
+                <div class="admin-card"><h3>Low Stock Products</h3><div class="table-responsive"><table class="admin-table" id="lowStockTable"><thead><tr><th>Product</th><th>SKU</th><th>Stock</th><th>Action</th></tr></thead><tbody></tbody></table></div></div>
+            </div>
+        </section>
+
+        <!-- Products Section -->
+        <section class="admin-section" id="sectionProducts">
+            <div class="section-toolbar"><h3>Product Management</h3><button class="btn btn-primary" id="addProductBtn"><i class="fas fa-plus"></i> Add Product</button></div>
+            <div class="table-responsive"><table class="admin-table" id="productsTable"><thead><tr><th>Image</th><th>Name</th><th>SKU</th><th>Price</th><th>Stock</th><th>Category</th><th>Status</th><th>Actions</th></tr></thead><tbody></tbody></table></div>
+        </section>
+
+        <!-- Orders Section -->
+        <section class="admin-section" id="sectionOrders">
+            <div class="section-toolbar"><h3>Order Management</h3></div>
+            <div class="table-responsive"><table class="admin-table" id="ordersTableAdmin"><thead><tr><th>Order #</th><th>Customer</th><th>Items</th><th>Total</th><th>Payment</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead><tbody></tbody></table></div>
+        </section>
+
+        <!-- Customers Section -->
+        <section class="admin-section" id="sectionCustomers">
+            <div class="section-toolbar"><h3>Customer Management</h3></div>
+            <div class="table-responsive"><table class="admin-table" id="customersTable"><thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Orders</th><th>Joined</th><th>Status</th></tr></thead><tbody></tbody></table></div>
+        </section>
+
+        <!-- Categories Section -->
+        <section class="admin-section" id="sectionCategories">
+            <div class="section-toolbar"><h3>Categories</h3><button class="btn btn-primary" id="addCategoryBtn"><i class="fas fa-plus"></i> Add Category</button></div>
+            <div class="table-responsive"><table class="admin-table" id="categoriesTable"><thead><tr><th>Name</th><th>Slug</th><th>Products</th><th>Status</th><th>Actions</th></tr></thead><tbody></tbody></table></div>
+        </section>
+
+        <!-- Coupons Section -->
+        <section class="admin-section" id="sectionCoupons">
+            <div class="section-toolbar"><h3>Coupon Management</h3><button class="btn btn-primary" id="addCouponBtn"><i class="fas fa-plus"></i> Add Coupon</button></div>
+            <div class="table-responsive"><table class="admin-table" id="couponsTable"><thead><tr><th>Code</th><th>Type</th><th>Value</th><th>Min Order</th><th>Used</th><th>Status</th><th>Actions</th></tr></thead><tbody></tbody></table></div>
+        </section>
+
+        <!-- Reviews Section -->
+        <section class="admin-section" id="sectionReviews">
+            <div class="section-toolbar"><h3>Review Management</h3></div>
+            <div class="table-responsive"><table class="admin-table" id="reviewsTable"><thead><tr><th>Product</th><th>Customer</th><th>Rating</th><th>Comment</th><th>Status</th><th>Actions</th></tr></thead><tbody></tbody></table></div>
+        </section>
+
+        <div id="footer"></div>
+    </main>
+
+    <!-- Admin Modal -->
+    <div class="modal-overlay" id="adminModal" style="display:none;">
+        <div class="modal-content admin-modal-content" id="adminModalContent"></div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/admin.js"></script>
+    <script src="js/script.js"></script>
+</body>
+</html>
