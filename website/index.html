@@ -3,37 +3,335 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home Page of the Company</title>
+    <title>ShopVerse - Premium E-Commerce</title>
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/navbar.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
-    <header>
-        <h1>Welcome to Our Website</h1>
-        <nav>
-            <ul>
-                <li><a href="index.html">Home</a></li>
-                <li><a href="about.html">About</a></li>
-                <li><a href="contact.html">Contact</a></li>
-                <li><a href="services.html">Services</a></li>
-                
-            </ul>
-        </nav>
+    <!-- Announcement Bar -->
+    <div class="announcement-bar">
+        <div class="announcement-content">
+            <span><i class="fas fa-truck"></i> Free Shipping on orders above ₹999</span>
+            <span><i class="fas fa-tag"></i> Use code WELCOME10 for 10% off</span>
+            <span><i class="fas fa-undo"></i> 30-day easy returns</span>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <header class="main-header" id="mainHeader">
+        <div class="header-container">
+            <div class="logo">
+                <a href="index.html">
+                    <span class="logo-icon"><i class="fas fa-shopping-bag"></i></span>
+                    <span class="logo-text">Shop<span class="logo-accent">Verse</span></span>
+                </a>
+            </div>
+
+            <nav class="main-nav" id="mainNav">
+                <ul class="nav-links">
+                    <li><a href="index.html" class="active">Home</a></li>
+                    <li class="has-dropdown">
+                        <a href="products.html">Shop <i class="fas fa-chevron-down"></i></a>
+                        <div class="mega-dropdown">
+                            <div class="dropdown-grid">
+                                <div class="dropdown-col">
+                                    <h4>Electronics</h4>
+                                    <a href="products.html?category=electronics">All Electronics</a>
+                                    <a href="products.html?category=electronics&brand=SoundMax">Headphones</a>
+                                    <a href="products.html?category=electronics&brand=TechFit">Smartwatches</a>
+                                </div>
+                                <div class="dropdown-col">
+                                    <h4>Fashion</h4>
+                                    <a href="products.html?category=fashion">All Fashion</a>
+                                    <a href="products.html?category=fashion&brand=StyleCraft">Men's Wear</a>
+                                    <a href="products.html?category=fashion&brand=RunFlex">Footwear</a>
+                                </div>
+                                <div class="dropdown-col">
+                                    <h4>Home & Living</h4>
+                                    <a href="products.html?category=home-living">All Home</a>
+                                    <a href="products.html?category=home-living&brand=HomeStyle">Furniture</a>
+                                    <a href="products.html?category=home-living&brand=GreenLife">Decor</a>
+                                </div>
+                                <div class="dropdown-col">
+                                    <h4>More</h4>
+                                    <a href="products.html?category=books">Books</a>
+                                    <a href="products.html?category=sports-fitness">Sports</a>
+                                    <a href="products.html?category=beauty-health">Beauty</a>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+                    <li><a href="products.html?featured=true">Featured</a></li>
+                    <li><a href="about.html">About</a></li>
+                    <li><a href="contact.html">Contact</a></li>
+                </ul>
+            </nav>
+
+            <div class="header-actions">
+                <div class="search-toggle" id="searchToggle">
+                    <i class="fas fa-search"></i>
+                </div>
+                <div class="user-menu" id="userMenu">
+                    <i class="fas fa-user"></i>
+                    <div class="user-dropdown" id="userDropdown">
+                        <div class="auth-links" id="authLinks">
+                            <a href="login.html"><i class="fas fa-sign-in-alt"></i> Login</a>
+                            <a href="register.html"><i class="fas fa-user-plus"></i> Register</a>
+                        </div>
+                        <div class="user-links" id="userLinks" style="display:none;">
+                            <a href="profile.html"><i class="fas fa-user-circle"></i> My Profile</a>
+                            <a href="orders.html"><i class="fas fa-box"></i> My Orders</a>
+                            <a href="wishlist.html"><i class="fas fa-heart"></i> Wishlist</a>
+                            <a href="#" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                        </div>
+                    </div>
+                </div>
+                <a href="wishlist.html" class="wishlist-icon">
+                    <i class="fas fa-heart"></i>
+                    <span class="wishlist-count" id="wishlistCount">0</span>
+                </a>
+                <a href="cart.html" class="cart-icon">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="cart-count" id="cartCount">0</span>
+                </a>
+                <div class="mobile-toggle" id="mobileToggle">
+                    <span></span><span></span><span></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search Overlay -->
+        <div class="search-overlay" id="searchOverlay">
+            <div class="search-container">
+                <input type="text" id="searchInput" placeholder="Search products, brands, categories..." autocomplete="off">
+                <button id="searchBtn"><i class="fas fa-search"></i></button>
+                <button class="search-close" id="searchClose"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="search-suggestions" id="searchSuggestions"></div>
+        </div>
     </header>
-    <main>
-        <section>
-            <h2>Our Mission</h2>
-            <p>We strive to deliver the best services to our clients and ensure customer satisfaction at every step.</p>
-        </section>
-        <section>
-            <h2>Latest News</h2>
-            <ul>
-                <li>Website launched - March 2026</li>
-                <li>New services coming soon!</li>
-            </ul>
-        </section>
-    </main>
-    <footer>
-        <p>&copy; 2026 Our Company. All rights reserved.</p>
-    </footer>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="hero-slider" id="heroSlider">
+            <div class="hero-slide active" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <div class="hero-content">
+                    <span class="hero-badge">New Arrivals</span>
+                    <h1>Discover Premium <br>Electronics</h1>
+                    <p>Up to 40% off on latest gadgets and accessories</p>
+                    <div class="hero-buttons">
+                        <a href="products.html?category=electronics" class="btn btn-primary btn-lg">Shop Now</a>
+                        <a href="products.html?featured=true" class="btn btn-outline btn-lg">View Featured</a>
+                    </div>
+                </div>
+                <div class="hero-image">
+                    <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500" alt="Electronics" loading="lazy">
+                </div>
+            </div>
+            <div class="hero-slide" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                <div class="hero-content">
+                    <span class="hero-badge">Trending</span>
+                    <h1>Fashion That <br>Speaks Style</h1>
+                    <p>Explore curated collections for every occasion</p>
+                    <div class="hero-buttons">
+                        <a href="products.html?category=fashion" class="btn btn-primary btn-lg">Explore</a>
+                        <a href="products.html" class="btn btn-outline btn-lg">All Products</a>
+                    </div>
+                </div>
+                <div class="hero-image">
+                    <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500" alt="Fashion" loading="lazy">
+                </div>
+            </div>
+            <div class="hero-slide" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                <div class="hero-content">
+                    <span class="hero-badge">Special Offer</span>
+                    <h1>Home & Living <br>Essentials</h1>
+                    <p>Transform your space with modern designs</p>
+                    <div class="hero-buttons">
+                        <a href="products.html?category=home-living" class="btn btn-primary btn-lg">Shop Home</a>
+                        <a href="products.html" class="btn btn-outline btn-lg">View All</a>
+                    </div>
+                </div>
+                <div class="hero-image">
+                    <img src="https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=500" alt="Home" loading="lazy">
+                </div>
+            </div>
+        </div>
+        <div class="hero-controls">
+            <button class="hero-prev" id="heroPrev"><i class="fas fa-chevron-left"></i></button>
+            <div class="hero-dots" id="heroDots"></div>
+            <button class="hero-next" id="heroNext"><i class="fas fa-chevron-right"></i></button>
+        </div>
+    </section>
+
+    <!-- Features Bar -->
+    <section class="features-bar">
+        <div class="container">
+            <div class="features-grid">
+                <div class="feature-item">
+                    <i class="fas fa-truck"></i>
+                    <div>
+                        <h4>Free Shipping</h4>
+                        <p>On orders above ₹999</p>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <i class="fas fa-shield-alt"></i>
+                    <div>
+                        <h4>Secure Payment</h4>
+                        <p>100% secure checkout</p>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <i class="fas fa-undo"></i>
+                    <div>
+                        <h4>Easy Returns</h4>
+                        <p>30-day return policy</p>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <i class="fas fa-headset"></i>
+                    <div>
+                        <h4>24/7 Support</h4>
+                        <p>Dedicated assistance</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Categories Section -->
+    <section class="section categories-section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Shop by Category</h2>
+                <p>Browse our wide range of categories</p>
+            </div>
+            <div class="categories-grid" id="categoriesGrid"></div>
+        </div>
+    </section>
+
+    <!-- Featured Products -->
+    <section class="section featured-section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Featured Products</h2>
+                <p>Handpicked items just for you</p>
+                <a href="products.html?featured=true" class="section-link">View All <i class="fas fa-arrow-right"></i></a>
+            </div>
+            <div class="products-grid" id="featuredProducts"></div>
+        </div>
+    </section>
+
+    <!-- Deal of the Day -->
+    <section class="section deal-section">
+        <div class="container">
+            <div class="deal-banner">
+                <div class="deal-content">
+                    <span class="deal-badge">Deal of the Day</span>
+                    <h2>Smart Watch Pro</h2>
+                    <p>Advanced fitness tracker with heart rate monitor, GPS, and 7-day battery life</p>
+                    <div class="deal-price">
+                        <span class="deal-current">₹4,999</span>
+                        <span class="deal-original">₹7,499</span>
+                        <span class="deal-discount">33% OFF</span>
+                    </div>
+                    <div class="deal-timer" id="dealTimer">
+                        <div class="timer-block"><span id="dealHours">00</span><small>Hours</small></div>
+                        <div class="timer-separator">:</div>
+                        <div class="timer-block"><span id="dealMinutes">00</span><small>Minutes</small></div>
+                        <div class="timer-separator">:</div>
+                        <div class="timer-block"><span id="dealSeconds">00</span><small>Seconds</small></div>
+                    </div>
+                    <a href="product-detail.html?id=2" class="btn btn-primary btn-lg">Grab the Deal</a>
+                </div>
+                <div class="deal-image">
+                    <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500" alt="Smart Watch" loading="lazy">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- New Arrivals -->
+    <section class="section new-arrivals-section">
+        <div class="container">
+            <div class="section-header">
+                <h2>New Arrivals</h2>
+                <p>Fresh additions to our collection</p>
+            </div>
+            <div class="products-grid" id="newArrivals"></div>
+        </div>
+    </section>
+
+    <!-- Testimonials -->
+    <section class="section testimonials-section">
+        <div class="container">
+            <div class="section-header">
+                <h2>What Our Customers Say</h2>
+                <p>Real reviews from real customers</p>
+            </div>
+            <div class="testimonials-slider" id="testimonialsSlider">
+                <div class="testimonial-card">
+                    <div class="testimonial-rating">
+                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                    </div>
+                    <p>"Amazing quality products! The wireless headphones are absolutely fantastic."</p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">R</div>
+                        <div><strong>Rahul Sharma</strong><span>Verified Buyer</span></div>
+                    </div>
+                </div>
+                <div class="testimonial-card">
+                    <div class="testimonial-rating">
+                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i>
+                    </div>
+                    <p>"Fast delivery and excellent customer service. The clothes fit perfectly."</p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">P</div>
+                        <div><strong>Priya Patel</strong><span>Verified Buyer</span></div>
+                    </div>
+                </div>
+                <div class="testimonial-card">
+                    <div class="testimonial-rating">
+                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                    </div>
+                    <p>"Love the coffee table! It transformed my living room completely."</p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">A</div>
+                        <div><strong>Amit Kumar</strong><span>Verified Buyer</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Newsletter -->
+    <section class="newsletter-section">
+        <div class="container">
+            <div class="newsletter-content">
+                <h2>Stay Updated</h2>
+                <p>Subscribe to get exclusive offers, new product alerts, and more!</p>
+                <form class="newsletter-form" id="newsletterForm">
+                    <input type="email" placeholder="Enter your email address" required>
+                    <button type="submit" class="btn btn-primary">Subscribe</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Dynamic Footer -->
+    <div id="footer"></div>
+
+    <button class="back-to-top" id="backToTop"><i class="fas fa-arrow-up"></i></button>
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/cart.js"></script>
+    <script src="js/script.js"></script>
+    <script src="js/home.js"></script>
 </body>
 </html>

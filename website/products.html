@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Products - ShopVerse</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/navbar.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Announcement Bar -->
+    <div class="announcement-bar">
+        <div class="announcement-content">
+            <span><i class="fas fa-truck"></i> Free Shipping on orders above ₹999</span>
+            <span><i class="fas fa-tag"></i> Use code WELCOME10 for 10% off</span>
+        </div>
+    </div>
+
+    <!-- Header (same as index) -->
+    <header class="main-header" id="mainHeader">
+        <div class="header-container">
+            <div class="logo">
+                <a href="index.html">
+                    <span class="logo-icon"><i class="fas fa-shopping-bag"></i></span>
+                    <span class="logo-text">Shop<span class="logo-accent">Verse</span></span>
+                </a>
+            </div>
+            <nav class="main-nav" id="mainNav">
+                <ul class="nav-links">
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="products.html" class="active">Shop</a></li>
+                    <li><a href="products.html?featured=true">Featured</a></li>
+                    <li><a href="about.html">About</a></li>
+                    <li><a href="contact.html">Contact</a></li>
+                </ul>
+            </nav>
+            <div class="header-actions">
+                <div class="search-toggle" id="searchToggle"><i class="fas fa-search"></i></div>
+                <div class="user-menu" id="userMenu">
+                    <i class="fas fa-user"></i>
+                    <div class="user-dropdown" id="userDropdown">
+                        <div class="auth-links" id="authLinks">
+                            <a href="login.html"><i class="fas fa-sign-in-alt"></i> Login</a>
+                            <a href="register.html"><i class="fas fa-user-plus"></i> Register</a>
+                        </div>
+                        <div class="user-links" id="userLinks" style="display:none;">
+                            <a href="profile.html"><i class="fas fa-user-circle"></i> My Profile</a>
+                            <a href="orders.html"><i class="fas fa-box"></i> My Orders</a>
+                            <a href="wishlist.html"><i class="fas fa-heart"></i> Wishlist</a>
+                            <a href="#" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                        </div>
+                    </div>
+                </div>
+                <a href="wishlist.html" class="wishlist-icon"><i class="fas fa-heart"></i><span class="wishlist-count" id="wishlistCount">0</span></a>
+                <a href="cart.html" class="cart-icon"><i class="fas fa-shopping-cart"></i><span class="cart-count" id="cartCount">0</span></a>
+                <div class="mobile-toggle" id="mobileToggle"><span></span><span></span><span></span></div>
+            </div>
+        </div>
+        <div class="search-overlay" id="searchOverlay">
+            <div class="search-container">
+                <input type="text" id="searchInput" placeholder="Search products..." autocomplete="off">
+                <button id="searchBtn"><i class="fas fa-search"></i></button>
+                <button class="search-close" id="searchClose"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="search-suggestions" id="searchSuggestions"></div>
+        </div>
+    </header>
+
+    <!-- Breadcrumb -->
+    <div class="breadcrumb">
+        <div class="container">
+            <a href="index.html">Home</a> <i class="fas fa-chevron-right"></i> <span id="breadcrumbText">All Products</span>
+        </div>
+    </div>
+
+    <!-- Products Page -->
+    <section class="products-page">
+        <div class="container">
+            <div class="products-layout">
+                <!-- Sidebar Filters -->
+                <aside class="filter-sidebar" id="filterSidebar">
+                    <div class="filter-header">
+                        <h3><i class="fas fa-filter"></i> Filters</h3>
+                        <button class="clear-filters" id="clearFilters">Clear All</button>
+                    </div>
+
+                    <div class="filter-group">
+                        <h4 class="filter-title" data-toggle="categoryFilter">
+                            Categories <i class="fas fa-chevron-down"></i>
+                        </h4>
+                        <div class="filter-content" id="categoryFilter">
+                            <div class="filter-options" id="categoryOptions"></div>
+                        </div>
+                    </div>
+
+                    <div class="filter-group">
+                        <h4 class="filter-title" data-toggle="priceFilter">
+                            Price Range <i class="fas fa-chevron-down"></i>
+                        </h4>
+                        <div class="filter-content" id="priceFilter">
+                            <div class="price-range">
+                                <input type="range" id="priceMin" min="0" max="10000" value="0" step="100">
+                                <input type="range" id="priceMax" min="0" max="10000" value="10000" step="100">
+                            </div>
+                            <div class="price-values">
+                                <span>₹<span id="priceMinVal">0</span></span>
+                                <span>₹<span id="priceMaxVal">10,000</span></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="filter-group">
+                        <h4 class="filter-title" data-toggle="brandFilter">
+                            Brands <i class="fas fa-chevron-down"></i>
+                        </h4>
+                        <div class="filter-content" id="brandFilter">
+                            <div class="filter-options" id="brandOptions"></div>
+                        </div>
+                    </div>
+
+                    <div class="filter-group">
+                        <h4 class="filter-title" data-toggle="ratingFilter">
+                            Rating <i class="fas fa-chevron-down"></i>
+                        </h4>
+                        <div class="filter-content" id="ratingFilter">
+                            <div class="rating-options">
+                                <label><input type="radio" name="rating" value="4"> 4★ & above</label>
+                                <label><input type="radio" name="rating" value="3"> 3★ & above</label>
+                                <label><input type="radio" name="rating" value="2"> 2★ & above</label>
+                                <label><input type="radio" name="rating" value="0" checked> All Ratings</label>
+                            </div>
+                        </div>
+                    </div>
+                </aside>
+
+                <!-- Products Content -->
+                <div class="products-content">
+                    <div class="products-toolbar">
+                        <div class="toolbar-left">
+                            <button class="filter-toggle-btn" id="filterToggleBtn">
+                                <i class="fas fa-filter"></i> Filters
+                            </button>
+                            <span class="results-count" id="resultsCount">0 products</span>
+                        </div>
+                        <div class="toolbar-right">
+                            <div class="sort-select">
+                                <select id="sortSelect">
+                                    <option value="default">Sort by: Default</option>
+                                    <option value="price-low">Price: Low to High</option>
+                                    <option value="price-high">Price: High to Low</option>
+                                    <option value="rating">Highest Rated</option>
+                                    <option value="newest">Newest First</option>
+                                    <option value="name-az">Name: A to Z</option>
+                                </select>
+                            </div>
+                            <div class="view-toggle">
+                                <button class="view-btn active" data-view="grid"><i class="fas fa-th"></i></button>
+                                <button class="view-btn" data-view="list"><i class="fas fa-list"></i></button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Active Filters -->
+                    <div class="active-filters" id="activeFilters"></div>
+
+                    <!-- Products Grid -->
+                    <div class="products-grid" id="productsGrid">
+                        <div class="loading-spinner"><div class="spinner"></div><p>Loading products...</p></div>
+                    </div>
+
+                    <!-- Pagination -->
+                    <div class="pagination" id="pagination"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Dynamic Footer -->
+    <div id="footer"></div>
+
+    <button class="back-to-top" id="backToTop"><i class="fas fa-arrow-up"></i></button>
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/cart.js"></script>
+    <script src="js/script.js"></script>
+    <script src="js/products.js"></script>
+</body>
+</html>

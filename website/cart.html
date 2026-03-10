@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopping Cart - ShopVerse</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/navbar.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="announcement-bar">
+        <div class="announcement-content"><span><i class="fas fa-truck"></i> Free Shipping on orders above ₹999</span></div>
+    </div>
+
+    <header class="main-header" id="mainHeader">
+        <div class="header-container">
+            <div class="logo"><a href="index.html"><span class="logo-icon"><i class="fas fa-shopping-bag"></i></span><span class="logo-text">Shop<span class="logo-accent">Verse</span></span></a></div>
+            <nav class="main-nav" id="mainNav">
+                <ul class="nav-links">
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="products.html">Shop</a></li>
+                    <li><a href="about.html">About</a></li>
+                    <li><a href="contact.html">Contact</a></li>
+                </ul>
+            </nav>
+            <div class="header-actions">
+                <div class="user-menu" id="userMenu">
+                    <i class="fas fa-user"></i>
+                    <div class="user-dropdown" id="userDropdown">
+                        <div class="auth-links" id="authLinks"><a href="login.html"><i class="fas fa-sign-in-alt"></i> Login</a><a href="register.html"><i class="fas fa-user-plus"></i> Register</a></div>
+                        <div class="user-links" id="userLinks" style="display:none;"><a href="profile.html"><i class="fas fa-user-circle"></i> Profile</a><a href="orders.html"><i class="fas fa-box"></i> Orders</a><a href="#" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</a></div>
+                    </div>
+                </div>
+                <a href="cart.html" class="cart-icon"><i class="fas fa-shopping-cart"></i><span class="cart-count" id="cartCount">0</span></a>
+                <div class="mobile-toggle" id="mobileToggle"><span></span><span></span><span></span></div>
+            </div>
+        </div>
+    </header>
+
+    <div class="breadcrumb"><div class="container"><a href="index.html">Home</a> <i class="fas fa-chevron-right"></i> <span>Shopping Cart</span></div></div>
+
+    <section class="cart-section">
+        <div class="container">
+            <h1 class="page-title"><i class="fas fa-shopping-cart"></i> Shopping Cart</h1>
+
+            <div class="cart-layout" id="cartLayout">
+                <div class="cart-items" id="cartItems">
+                    <div class="loading-spinner"><div class="spinner"></div><p>Loading cart...</p></div>
+                </div>
+
+                <div class="cart-summary" id="cartSummary">
+                    <h3>Order Summary</h3>
+                    <div class="summary-row"><span>Subtotal</span><span id="cartSubtotal">₹0</span></div>
+                    <div class="summary-row"><span>Shipping</span><span id="cartShipping">₹0</span></div>
+                    <div class="summary-row discount-row" id="discountRow" style="display:none;">
+                        <span>Discount</span><span id="cartDiscount">-₹0</span>
+                    </div>
+                    <div class="coupon-section">
+                        <input type="text" id="couponInput" placeholder="Enter coupon code">
+                        <button class="btn btn-secondary" id="applyCoupon">Apply</button>
+                    </div>
+                    <div class="summary-total"><span>Total</span><span id="cartTotal">₹0</span></div>
+                    <button class="btn btn-primary btn-block" id="checkoutBtn">Proceed to Checkout</button>
+                    <a href="products.html" class="btn btn-outline btn-block">Continue Shopping</a>
+                </div>
+            </div>
+
+            <div class="empty-cart" id="emptyCart" style="display:none;">
+                <i class="fas fa-shopping-cart"></i>
+                <h2>Your cart is empty</h2>
+                <p>Looks like you haven't added anything yet.</p>
+                <a href="products.html" class="btn btn-primary btn-lg">Start Shopping</a>
+            </div>
+        </div>
+    </section>
+
+    <div id="footer"></div>
+
+    <button class="back-to-top" id="backToTop"><i class="fas fa-arrow-up"></i></button>
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/cart.js"></script>
+    <script src="js/script.js"></script>
+    <script src="js/cart-page.js"></script>
+</body>
+</html>
