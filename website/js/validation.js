@@ -50,10 +50,10 @@ const Validator = {
         group.classList.add('error');
         group.classList.remove('success');
 
-        let errorEl = group.querySelector('.error-message');
+        let errorEl = group.querySelector('.error-msg');
         if (!errorEl) {
             errorEl = document.createElement('span');
-            errorEl.className = 'error-message';
+            errorEl.className = 'error-msg';
             group.appendChild(errorEl);
         }
         errorEl.textContent = message;
@@ -63,14 +63,14 @@ const Validator = {
         const group = input.closest('.form-group') || input.parentElement;
         group.classList.remove('error');
         group.classList.add('success');
-        const errorEl = group.querySelector('.error-message');
+        const errorEl = group.querySelector('.error-msg');
         if (errorEl) errorEl.remove();
     },
 
     clearErrors(form) {
         form.querySelectorAll('.form-group').forEach(group => {
             group.classList.remove('error', 'success');
-            const errorEl = group.querySelector('.error-message');
+            const errorEl = group.querySelector('.error-msg');
             if (errorEl) errorEl.remove();
         });
     },
