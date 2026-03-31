@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Doctor Dashboard — MediCore HMS</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/main.css"><link rel="stylesheet" href="/css/dashboard.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<div class="layout">
+  <div class="sidebar-overlay"></div>
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="sidebar-logo"><i class="fas fa-hospital-alt"></i></div>
+      <div class="sidebar-brand-text"><div class="sidebar-brand-name">MediCore HMS</div><div class="sidebar-brand-sub">Doctor Portal</div></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <a class="nav-item active" data-page="dashboard" href="#" onclick="showPage('dashboard')"><i class="fas fa-th-large"></i> Dashboard</a>
+        <a class="nav-item" data-page="appointments" href="#" onclick="showPage('appointments')"><i class="fas fa-calendar-check"></i> Appointments</a>
+        <a class="nav-item" data-page="patients" href="#" onclick="showPage('patients')"><i class="fas fa-users"></i> My Patients</a>
+        <a class="nav-item" data-page="prescriptions" href="#" onclick="showPage('prescriptions')"><i class="fas fa-prescription"></i> Prescriptions</a>
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="sidebar-avatar" id="sidebar-avatar">D</div>
+        <div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Doctor</div><div class="sidebar-user-role" id="sidebar-user-role">doctor</div></div>
+        <button id="logout-btn" class="sidebar-logout"><i class="fas fa-sign-out-alt"></i></button>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="topbar-btn sidebar-toggle"><i class="fas fa-bars"></i></button>
+        <h1 id="page-title">Dashboard</h1>
+      </div>
+      <div class="topbar-right">
+        <div style="width:38px;height:38px;border-radius:50%;background:var(--gradient-main);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;" id="topbar-avatar">D</div>
+      </div>
+    </header>
+
+    <main class="page-content">
+      <!-- Dashboard -->
+      <div id="page-dashboard">
+        <div class="page-header">
+          <div><div class="page-title" id="doc-greeting">Good Morning, Doctor</div><div class="page-subtitle" id="today-date"></div></div>
+        </div>
+        <div class="stats-grid" id="stats-grid"></div>
+        <div class="grid-2" style="margin-top:24px;">
+          <div class="card">
+            <div class="card-header"><span style="font-weight:700;">Today's Appointments</span></div>
+            <div id="today-appts" style="padding:0;"></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><span style="font-weight:700;">Quick Actions</span></div>
+            <div class="card-body" style="display:flex;flex-direction:column;gap:12px;">
+              <button class="btn btn-primary" onclick="showPage('appointments')"><i class="fas fa-calendar"></i> View All Appointments</button>
+              <button class="btn btn-secondary" onclick="Modal.open('write-rx-modal')"><i class="fas fa-prescription"></i> Write Prescription</button>
+              <button class="btn btn-secondary" onclick="showPage('patients')"><i class="fas fa-users"></i> Search Patient</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Appointments -->
+      <div id="page-appointments" class="hidden">
+        <div class="page-header">
+          <div><div class="page-title">My Appointments</div></div>
+          <div class="page-actions">
+            <input type="date" id="appt-date" class="form-control" style="width:auto;" onchange="loadAppointments()">
+            <select id="appt-status" class="form-control" style="width:auto;" onchange="loadAppointments()">
+              <option value="">All Status</option><option value="pending">Pending</option><option value="confirmed">Confirmed</option><option value="completed">Completed</option>
+            </select>
+          </div>
+        </div>
+        <div class="card"><div id="appts-table"></div></div>
+      </div>
+
+      <!-- Patients -->
+      <div id="page-patients" class="hidden">
+        <div class="page-header"><div><div class="page-title">My Patients</div></div></div>
+        <div class="card" style="margin-bottom:20px;"><div class="card-body" style="padding:16px;"><div class="search-wrap"><i class="fas fa-search search-icon"></i><input type="text" id="patient-search" class="form-control" placeholder="Search patients…" oninput="loadMyPatients()"></div></div></div>
+        <div class="card"><div id="patients-table"></div></div>
+      </div>
+
+      <!-- Prescriptions -->
+      <div id="page-prescriptions" class="hidden">
+        <div class="page-header">
+          <div><div class="page-title">Prescriptions</div></div>
+          <div class="page-actions"><button class="btn btn-primary" onclick="Modal.open('write-rx-modal')"><i class="fas fa-plus"></i> Write Prescription</button></div>
+        </div>
+        <div class="card"><div id="rx-table"></div></div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- Write Prescription / Medical Record Modal -->
+<div class="modal-overlay" id="write-rx-modal">
+  <div class="modal" style="max-width:700px;">
+    <div class="modal-header"><span class="modal-title">Add Medical Record & Prescription</span><button class="modal-close">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Patient ID or Name</label>
+        <input type="text" id="rx-patient-search" class="form-control" placeholder="Search patient…" oninput="searchRxPatient()">
+        <div id="rx-patient-results" style="margin-top:8px;"></div>
+        <input type="hidden" id="rx-patient-id">
+      </div>
+      <div class="form-group"><label class="form-label">Appointment (Optional)</label><input type="text" id="rx-appt-id" class="form-control" placeholder="Appointment ID"></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Chief Complaint</label><textarea id="rx-complaint" class="form-control" rows="2"></textarea></div>
+        <div class="form-group"><label class="form-label">Diagnosis</label><textarea id="rx-diagnosis" class="form-control" rows="2"></textarea></div>
+      </div>
+      <div class="form-row-3">
+        <div class="form-group"><label class="form-label">BP</label><input type="text" id="v-bp" class="form-control" placeholder="120/80"></div>
+        <div class="form-group"><label class="form-label">Pulse</label><input type="text" id="v-pulse" class="form-control" placeholder="72 bpm"></div>
+        <div class="form-group"><label class="form-label">Temp</label><input type="text" id="v-temp" class="form-control" placeholder="98.6°F"></div>
+        <div class="form-group"><label class="form-label">Weight</label><input type="text" id="v-weight" class="form-control" placeholder="65 kg"></div>
+        <div class="form-group"><label class="form-label">SpO2</label><input type="text" id="v-spo2" class="form-control" placeholder="98%"></div>
+        <div class="form-group"><label class="form-label">Follow-up</label><input type="date" id="rx-followup" class="form-control"></div>
+      </div>
+      <div style="margin-bottom:12px;font-weight:700;font-size:13px;color:var(--text-secondary);">MEDICINES</div>
+      <div id="medicines-list">
+        <div class="medicine-row" style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr auto;gap:8px;align-items:end;margin-bottom:8px;">
+          <div><label class="form-label">Medicine</label><input type="text" class="form-control med-name" placeholder="Paracetamol 500mg"></div>
+          <div><label class="form-label">Dosage</label><input type="text" class="form-control med-dosage" placeholder="1 tablet"></div>
+          <div><label class="form-label">Frequency</label><input type="text" class="form-control med-freq" placeholder="3x/day"></div>
+          <div><label class="form-label">Duration</label><input type="text" class="form-control med-dur" placeholder="5 days"></div>
+          <div style="margin-bottom:0;"><button class="btn btn-danger btn-sm btn-icon" onclick="this.closest('.medicine-row').remove()"><i class="fas fa-trash"></i></button></div>
+        </div>
+      </div>
+      <button class="btn btn-secondary btn-sm" onclick="addMedRow()"><i class="fas fa-plus"></i> Add Medicine</button>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="Modal.close('write-rx-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitMedRecord()"><i class="fas fa-save"></i> Save Record & Prescription</button>
+    </div>
+  </div>
+</div>
+
+<script src="/js/config.js"></script><script src="/js/utils.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  const user = Auth.requireAuth(['doctor']); if (!user) return;
+  Sidebar.init(); Sidebar.populate(user);
+  document.getElementById('topbar-avatar').textContent = Fmt.initials(user.name);
+  document.getElementById('today-date').textContent = new Date().toLocaleDateString('en-IN',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  const hour = new Date().getHours();
+  document.getElementById('doc-greeting').textContent = `${hour<12?'Good Morning':hour<18?'Good Afternoon':'Good Evening'}, ${user.name}`;
+  await loadDashboardStats();
+});
+
+function showPage(page) {
+  document.querySelectorAll('[id^="page-"]').forEach(p=>p.classList.add('hidden'));
+  document.getElementById(`page-${page}`)?.classList.remove('hidden');
+  Sidebar.setActive(page);
+  const loaders = {appointments:loadAppointments, patients:loadMyPatients};
+  if (loaders[page]) loaders[page]();
+}
+
+async function loadDashboardStats() {
+  const [apptSummary, todayAppts] = await Promise.all([API.get('/appointments/today/summary'), API.get('/appointments?date='+new Date().toISOString().split('T')[0]+'&limit=20')]);
+  if (apptSummary?.success) {
+    const s = apptSummary.data;
+    document.getElementById('stats-grid').innerHTML = `
+      <div class="card stat-card teal"><div class="card-body"><div class="stat-icon teal"><i class="fas fa-calendar"></i></div><div class="stat-value">${s.total||0}</div><div class="stat-label">Today's Total</div></div></div>
+      <div class="card stat-card amber"><div class="card-body"><div class="stat-icon amber"><i class="fas fa-clock"></i></div><div class="stat-value">${s.pending||0}</div><div class="stat-label">Pending</div></div></div>
+      <div class="card stat-card green"><div class="card-body"><div class="stat-icon green"><i class="fas fa-check"></i></div><div class="stat-value">${s.completed||0}</div><div class="stat-label">Completed</div></div></div>
+      <div class="card stat-card red"><div class="card-body"><div class="stat-icon red"><i class="fas fa-times"></i></div><div class="stat-value">${s.cancelled||0}</div><div class="stat-label">Cancelled</div></div></div>`;
+  }
+  if (todayAppts?.success) {
+    const list = document.getElementById('today-appts');
+    if (!todayAppts.data.length) { list.innerHTML='<div class="empty-state"><i class="fas fa-calendar"></i><p>No appointments today</p></div>'; return; }
+    list.innerHTML = todayAppts.data.map(a=>`
+      <div style="padding:14px 20px;display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(255,255,255,0.04);">
+        <div style="width:36px;height:36px;border-radius:50%;background:var(--teal-dim);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--teal);font-size:12px;flex-shrink:0;">#${a.token_number}</div>
+        <div style="flex:1;"><div style="font-weight:600;font-size:13px;">${a.patient_name}</div><div style="font-size:12px;color:var(--text-muted);">${Fmt.time(a.appointment_time)} · ${a.reason||'General checkup'}</div></div>
+        <div style="display:flex;gap:6px;">
+          ${getBadge(a.status)}
+          <button class="btn btn-primary btn-sm" onclick="markComplete(${a.id})">Done</button>
+        </div>
+      </div>`).join('');
+  }
+}
+
+async function markComplete(id) {
+  const res = await API.put(`/appointments/${id}/status`, { status:'completed' });
+  if (res?.success) { Toast.success('Appointment completed'); loadDashboardStats(); }
+  else Toast.error(res?.message);
+}
+
+async function loadAppointments() {
+  const date = document.getElementById('appt-date')?.value||'';
+  const status = document.getElementById('appt-status')?.value||'';
+  const res = await API.get(`/appointments?date=${date}&status=${status}&limit=50`);
+  buildTable('appts-table',
+    [{label:'Token',render:r=>`<span class="badge badge-teal">#${r.token_number}</span>`},{label:'Patient',key:'patient_name'},{label:'Date',render:r=>Fmt.date(r.appointment_date)},{label:'Time',render:r=>Fmt.time(r.appointment_time)},{label:'Reason',key:'reason'},{label:'Status',render:r=>getBadge(r.status)},{label:'Actions',render:r=>`<div style="display:flex;gap:6px;"><button class="btn btn-primary btn-sm" onclick="markComplete(${r.id})">Complete</button><button class="btn btn-secondary btn-sm" onclick="openRxForAppt(${r.id},'${r.patient_id}')">Prescribe</button></div>`}],
+    res?.data);
+}
+
+async function loadMyPatients() {
+  const search = document.getElementById('patient-search')?.value||'';
+  const res = await API.get(`/patients?search=${encodeURIComponent(search)}&limit=50`);
+  buildTable('patients-table',
+    [{label:'ID',key:'patient_id'},{label:'Name',key:'name'},{label:'Phone',key:'phone'},{label:'Gender',key:'gender'},{label:'Blood',key:'blood_group'},{label:'Actions',render:r=>`<button class="btn btn-secondary btn-sm" onclick="openRxForPatient(${r.id})"><i class="fas fa-prescription"></i> Prescribe</button>`}],
+    res?.data,'No patients found');
+}
+
+function openRxForPatient(patId) { document.getElementById('rx-patient-id').value=patId; Modal.open('write-rx-modal'); }
+function openRxForAppt(apptId, patId) { document.getElementById('rx-appt-id').value=apptId; document.getElementById('rx-patient-id').value=patId; Modal.open('write-rx-modal'); }
+
+async function searchRxPatient() {
+  const q = document.getElementById('rx-patient-search').value;
+  if (!q || q.length < 2) return;
+  const res = await API.get(`/patients?search=${encodeURIComponent(q)}&limit=5`);
+  const el = document.getElementById('rx-patient-results');
+  el.innerHTML = (res?.data||[]).map(p=>`<button class="btn btn-secondary btn-sm" style="margin:4px;" onclick="selectRxPatient(${p.id},'${p.name}')">${p.name} (${p.patient_id})</button>`).join('');
+}
+function selectRxPatient(id, name) { document.getElementById('rx-patient-id').value=id; document.getElementById('rx-patient-search').value=name; document.getElementById('rx-patient-results').innerHTML=''; }
+
+function addMedRow() {
+  const row = document.createElement('div');
+  row.className='medicine-row'; row.style.cssText='display:grid;grid-template-columns:2fr 1fr 1fr 1fr auto;gap:8px;align-items:end;margin-bottom:8px;';
+  row.innerHTML=`<div><input type="text" class="form-control med-name" placeholder="Medicine name"></div><div><input type="text" class="form-control med-dosage" placeholder="Dosage"></div><div><input type="text" class="form-control med-freq" placeholder="Frequency"></div><div><input type="text" class="form-control med-dur" placeholder="Duration"></div><div><button class="btn btn-danger btn-sm btn-icon" onclick="this.closest('.medicine-row').remove()"><i class="fas fa-trash"></i></button></div>`;
+  document.getElementById('medicines-list').appendChild(row);
+}
+
+async function submitMedRecord() {
+  const patId = document.getElementById('rx-patient-id').value;
+  if (!patId) { Toast.error('Please select a patient'); return; }
+  const medicines = [...document.querySelectorAll('.medicine-row')].map(r=>({medicine_name:r.querySelector('.med-name').value, dosage:r.querySelector('.med-dosage').value, frequency:r.querySelector('.med-freq').value, duration:r.querySelector('.med-dur').value})).filter(m=>m.medicine_name);
+  const data = { patient_id:patId, appointment_id:document.getElementById('rx-appt-id').value||null, chief_complaint:document.getElementById('rx-complaint').value, diagnosis:document.getElementById('rx-diagnosis').value, vital_bp:document.getElementById('v-bp').value, vital_pulse:document.getElementById('v-pulse').value, vital_temp:document.getElementById('v-temp').value, vital_weight:document.getElementById('v-weight').value, vital_spo2:document.getElementById('v-spo2').value, follow_up_date:document.getElementById('rx-followup').value||null, medicines };
+  const res = await API.post('/medical-records', data);
+  if (res?.success) { Toast.success('Medical record & prescription saved!'); Modal.close('write-rx-modal'); }
+  else Toast.error(res?.message||'Failed');
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Patient Dashboard — MediCore HMS</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/main.css"><link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body>
+<div class="layout">
+  <div class="sidebar-overlay"></div>
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="sidebar-logo"><i class="fas fa-hospital-alt"></i></div>
+      <div class="sidebar-brand-text"><div class="sidebar-brand-name">MediCore HMS</div><div class="sidebar-brand-sub">Patient Portal</div></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <a class="nav-item active" data-page="dashboard" href="#" onclick="showPage('dashboard')"><i class="fas fa-th-large"></i> Dashboard</a>
+        <a class="nav-item" data-page="appointments" href="#" onclick="showPage('appointments')"><i class="fas fa-calendar-check"></i> My Appointments</a>
+        <a class="nav-item" data-page="records" href="#" onclick="showPage('records')"><i class="fas fa-file-medical"></i> Medical Records</a>
+        <a class="nav-item" data-page="prescriptions" href="#" onclick="showPage('prescriptions')"><i class="fas fa-prescription"></i> Prescriptions</a>
+        <a class="nav-item" data-page="bills" href="#" onclick="showPage('bills')"><i class="fas fa-file-invoice-dollar"></i> Bills & Payments</a>
+        <a class="nav-item" data-page="doctors" href="#" onclick="showPage('doctors')"><i class="fas fa-user-doctor"></i> Find Doctors</a>
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="sidebar-avatar" id="sidebar-avatar">P</div>
+        <div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Patient</div><div class="sidebar-user-role" id="sidebar-user-role">patient</div></div>
+        <button id="logout-btn" class="sidebar-logout"><i class="fas fa-sign-out-alt"></i></button>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="topbar-btn sidebar-toggle"><i class="fas fa-bars"></i></button>
+        <h1 id="page-title">My Health Dashboard</h1>
+      </div>
+    </header>
+
+    <main class="page-content">
+      <!-- Dashboard -->
+      <div id="page-dashboard">
+        <div class="page-header"><div><div class="page-title" id="greeting">Hello, Patient</div><div class="page-subtitle" id="today-date"></div></div>
+          <button class="btn btn-primary" onclick="Modal.open('book-appt-modal')"><i class="fas fa-plus"></i> Book Appointment</button>
+        </div>
+        <div class="stats-grid" id="stats-grid"></div>
+        <div class="grid-2" style="margin-top:24px;">
+          <div class="card"><div class="card-header"><span style="font-weight:700;">Upcoming Appointments</span></div><div id="upcoming-appts" style="padding:0;"></div></div>
+          <div class="card"><div class="card-header"><span style="font-weight:700;">Recent Prescriptions</span></div><div id="recent-rx" style="padding:0;"></div></div>
+        </div>
+      </div>
+
+      <!-- Appointments -->
+      <div id="page-appointments" class="hidden">
+        <div class="page-header"><div><div class="page-title">My Appointments</div></div>
+          <button class="btn btn-primary" onclick="Modal.open('book-appt-modal')"><i class="fas fa-plus"></i> Book Appointment</button>
+        </div>
+        <div class="card"><div id="appts-table"></div></div>
+      </div>
+
+      <!-- Records -->
+      <div id="page-records" class="hidden">
+        <div class="page-header"><div><div class="page-title">Medical Records</div></div></div>
+        <div class="card"><div id="records-table"></div></div>
+      </div>
+
+      <!-- Prescriptions -->
+      <div id="page-prescriptions" class="hidden">
+        <div class="page-header"><div><div class="page-title">My Prescriptions</div></div></div>
+        <div class="card"><div id="rx-table"></div></div>
+      </div>
+
+      <!-- Bills -->
+      <div id="page-bills" class="hidden">
+        <div class="page-header"><div><div class="page-title">Bills & Payments</div></div></div>
+        <div class="card"><div id="bills-table"></div></div>
+      </div>
+
+      <!-- Doctors -->
+      <div id="page-doctors" class="hidden">
+        <div class="page-header"><div><div class="page-title">Find a Doctor</div></div>
+          <select id="dept-filter" class="form-control" style="width:auto;" onchange="loadDoctors()"><option value="">All Departments</option></select>
+        </div>
+        <div id="doctors-grid" class="grid-3"></div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- Book Appointment Modal -->
+<div class="modal-overlay" id="book-appt-modal">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">Book Appointment</span><button class="modal-close">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Select Doctor</label><select id="ba-doctor" class="form-control"><option value="">Select Doctor</option></select></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Date</label><input type="date" id="ba-date" class="form-control"></div>
+        <div class="form-group"><label class="form-label">Time</label><input type="time" id="ba-time" class="form-control"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Type</label><select id="ba-type" class="form-control"><option value="online">Online</option><option value="walk_in">Walk-in</option></select></div>
+      <div class="form-group"><label class="form-label">Reason for Visit</label><textarea id="ba-reason" class="form-control" rows="3" placeholder="Describe your symptoms or reason for visit…"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="Modal.close('book-appt-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="bookAppointment()"><i class="fas fa-calendar-check"></i> Book</button>
+    </div>
+  </div>
+</div>
+
+<script src="/js/config.js"></script><script src="/js/utils.js"></script>
+<script>
+let myPatientId = null;
+document.addEventListener('DOMContentLoaded', async () => {
+  const user = Auth.requireAuth(['patient']); if (!user) return;
+  Sidebar.init(); Sidebar.populate(user);
+  document.getElementById('today-date').textContent = new Date().toLocaleDateString('en-IN',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  document.getElementById('greeting').textContent = `Hello, ${user.name} 👋`;
+  document.getElementById('ba-date').min = new Date().toISOString().split('T')[0];
+  // Get patient record
+  const meRes = await API.get('/auth/me');
+  const pRes = await API.get('/patients?limit=1');
+  // Load doctors for booking
+  const docRes = await API.get('/doctors');
+  const depts  = await API.get('/doctors/departments');
+  if (docRes?.success) {
+    const sel = document.getElementById('ba-doctor');
+    sel.innerHTML = '<option value="">Select Doctor</option>' + docRes.data.map(d=>`<option value="${d.id}">${d.name} — ${d.specialization||'General'} (₹${d.consultation_fee})</option>`).join('');
+  }
+  if (depts?.success) {
+    const sel = document.getElementById('dept-filter');
+    sel.innerHTML = '<option value="">All Departments</option>' + depts.data.map(d=>`<option value="${d.id}">${d.name}</option>`).join('');
+  }
+  await loadDashboard();
+});
+
+function showPage(page) {
+  document.querySelectorAll('[id^="page-"]').forEach(p=>p.classList.add('hidden'));
+  document.getElementById(`page-${page}`)?.classList.remove('hidden');
+  Sidebar.setActive(page);
+  document.getElementById('page-title').textContent = {dashboard:'My Health Dashboard',appointments:'My Appointments',records:'Medical Records',prescriptions:'Prescriptions',bills:'Bills & Payments',doctors:'Find Doctors'}[page]||page;
+  const loaders = {appointments:loadAppointments, records:loadRecords, prescriptions:loadPrescriptions, bills:loadBills, doctors:loadDoctors};
+  if (loaders[page]) loaders[page]();
+}
+
+async function loadDashboard() {
+  const appts = await API.get('/appointments?limit=50');
+  const upcoming = (appts?.data||[]).filter(a=>a.status==='pending'||a.status==='confirmed');
+  document.getElementById('stats-grid').innerHTML = `
+    <div class="card stat-card teal"><div class="card-body"><div class="stat-icon teal"><i class="fas fa-calendar"></i></div><div class="stat-value">${upcoming.length}</div><div class="stat-label">Upcoming Appointments</div></div></div>
+    <div class="card stat-card green"><div class="card-body"><div class="stat-icon green"><i class="fas fa-check-circle"></i></div><div class="stat-value">${(appts?.data||[]).filter(a=>a.status==='completed').length}</div><div class="stat-label">Completed Visits</div></div></div>
+    <div class="card stat-card purple"><div class="card-body"><div class="stat-icon purple"><i class="fas fa-file-medical"></i></div><div class="stat-value"><i class="fas fa-file-waveform"></i></div><div class="stat-label">Medical Records</div></div></div>
+    <div class="card stat-card amber"><div class="card-body"><div class="stat-icon amber"><i class="fas fa-prescription"></i></div><div class="stat-value">Active Rx</div><div class="stat-label">Prescriptions</div></div></div>`;
+  const upcomingEl = document.getElementById('upcoming-appts');
+  if (upcoming.length) {
+    upcomingEl.innerHTML = upcoming.slice(0,5).map(a=>`
+      <div style="padding:14px 20px;display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(255,255,255,0.04);">
+        <div style="width:36px;height:36px;border-radius:8px;background:var(--teal-dim);display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--teal);"><i class="fas fa-calendar"></i></div>
+        <div style="flex:1;"><div style="font-weight:600;font-size:13px;">${a.doctor_name}</div><div style="font-size:12px;color:var(--text-muted);">${Fmt.date(a.appointment_date)} at ${Fmt.time(a.appointment_time)}</div></div>
+        ${getBadge(a.status)}
+      </div>`).join('');
+  } else { upcomingEl.innerHTML='<div class="empty-state"><i class="fas fa-calendar-xmark"></i><p>No upcoming appointments</p></div>'; }
+}
+
+async function bookAppointment() {
+  const meRes = await API.get('/auth/me');
+  // Find patient profile
+  const patRes = await API.get('/patients?limit=100');
+  const myPat = (patRes?.data||[]).find(p=>p.email === meRes?.user?.email);
+  if (!myPat) { Toast.error('Patient profile not found'); return; }
+  const data = { patient_id:myPat.id, doctor_id:document.getElementById('ba-doctor').value, appointment_date:document.getElementById('ba-date').value, appointment_time:document.getElementById('ba-time').value, type:document.getElementById('ba-type').value, reason:document.getElementById('ba-reason').value };
+  if (!data.doctor_id||!data.appointment_date||!data.appointment_time) { Toast.error('Please fill all fields'); return; }
+  const res = await API.post('/appointments', data);
+  if (res?.success) { Toast.success('Appointment booked!'); Modal.close('book-appt-modal'); loadDashboard(); }
+  else Toast.error(res?.message||'Booking failed');
+}
+
+async function loadAppointments() {
+  const res = await API.get('/appointments?limit=50');
+  buildTable('appts-table',[{label:'Doctor',key:'doctor_name'},{label:'Specialization',key:'specialization'},{label:'Date',render:r=>Fmt.date(r.appointment_date)},{label:'Time',render:r=>Fmt.time(r.appointment_time)},{label:'Type',key:'type'},{label:'Reason',key:'reason'},{label:'Status',render:r=>getBadge(r.status)}],res?.data,'No appointments found');
+}
+
+async function loadDoctors() {
+  const dept = document.getElementById('dept-filter')?.value||'';
+  const res = await API.get(`/doctors?department_id=${dept}`);
+  document.getElementById('doctors-grid').innerHTML = (res?.data||[]).map(d=>`
+    <div class="card card-body">
+      <div style="display:flex;gap:16px;margin-bottom:16px;">
+        <div style="width:56px;height:56px;border-radius:50%;background:var(--gradient-main);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:#fff;flex-shrink:0;">${Fmt.initials(d.name)}</div>
+        <div><h3 style="font-weight:700;font-size:15px;">${d.name}</h3><span class="badge badge-teal">${d.specialization||'General'}</span></div>
+      </div>
+      <div style="font-size:13px;color:var(--text-muted);margin-bottom:8px;"><i class="fas fa-building" style="width:16px;"></i> ${d.department_name||'—'}</div>
+      <div style="font-size:13px;color:var(--text-muted);margin-bottom:8px;"><i class="fas fa-graduation-cap" style="width:16px;"></i> ${d.qualification||'—'}</div>
+      <div style="font-size:13px;color:var(--text-muted);margin-bottom:16px;"><i class="fas fa-clock" style="width:16px;"></i> ${d.experience_years} years exp · ₹${d.consultation_fee}</div>
+      <button class="btn btn-primary btn-full btn-sm" onclick="document.getElementById('ba-doctor').value=${d.id};Modal.open('book-appt-modal')"><i class="fas fa-calendar-plus"></i> Book Appointment</button>
+    </div>`).join('');
+}
+
+async function loadRecords() {
+  const res = await API.get('/appointments?status=completed&limit=50');
+  buildTable('records-table',[{label:'Doctor',key:'doctor_name'},{label:'Date',render:r=>Fmt.date(r.appointment_date)},{label:'Reason',key:'reason'},{label:'Status',render:r=>getBadge(r.status)}],res?.data,'No medical records found');
+}
+async function loadPrescriptions() { buildTable('rx-table',[{label:'Info',render:r=>'No prescriptions API yet'}],[],'No prescriptions found'); }
+async function loadBills() {
+  const res = await API.get('/billing?limit=50');
+  buildTable('bills-table',[{label:'Bill No.',key:'bill_number'},{label:'Amount',render:r=>Fmt.currency(r.net_amount)},{label:'Paid',render:r=>`<span class="text-green">${Fmt.currency(r.amount_paid)}</span>`},{label:'Balance',render:r=>`<span class="text-red">${Fmt.currency(r.balance_due)}</span>`},{label:'Status',render:r=>getBadge(r.status)},{label:'Date',render:r=>Fmt.date(r.created_at)}],res?.data,'No bills found');
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard — MediCore HMS</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/dashboard.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<div class="layout">
+  <!-- Sidebar Overlay (mobile) -->
+  <div class="sidebar-overlay"></div>
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="sidebar-logo"><i class="fas fa-hospital-alt"></i></div>
+      <div class="sidebar-brand-text">
+        <div class="sidebar-brand-name">MediCore HMS</div>
+        <div class="sidebar-brand-sub">Admin Panel</div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <div class="nav-section-label">Overview</div>
+        <a class="nav-item active" data-page="dashboard" href="#" onclick="showPage('dashboard')">
+          <i class="fas fa-th-large"></i> Dashboard
+        </a>
+        <a class="nav-item" data-page="reports" href="#" onclick="showPage('reports')">
+          <i class="fas fa-chart-pie"></i> Analytics
+        </a>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-label">Management</div>
+        <a class="nav-item" data-page="patients" href="#" onclick="showPage('patients')">
+          <i class="fas fa-users"></i> Patients
+        </a>
+        <a class="nav-item" data-page="doctors" href="#" onclick="showPage('doctors')">
+          <i class="fas fa-user-doctor"></i> Doctors
+        </a>
+        <a class="nav-item" data-page="staff" href="#" onclick="showPage('staff')">
+          <i class="fas fa-id-card"></i> Staff
+        </a>
+        <a class="nav-item" data-page="departments" href="#" onclick="showPage('departments')">
+          <i class="fas fa-building"></i> Departments
+        </a>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-label">Operations</div>
+        <a class="nav-item" data-page="appointments" href="#" onclick="showPage('appointments')">
+          <i class="fas fa-calendar-check"></i> Appointments
+        </a>
+        <a class="nav-item" data-page="beds" href="#" onclick="showPage('beds')">
+          <i class="fas fa-bed"></i> Bed Management
+        </a>
+        <a class="nav-item" data-page="billing" href="#" onclick="showPage('billing')">
+          <i class="fas fa-file-invoice-dollar"></i> Billing
+        </a>
+        <a class="nav-item" data-page="lab" href="#" onclick="showPage('lab')">
+          <i class="fas fa-flask"></i> Laboratory
+        </a>
+        <a class="nav-item" data-page="pharmacy" href="#" onclick="showPage('pharmacy')">
+          <i class="fas fa-pills"></i> Pharmacy
+        </a>
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="sidebar-avatar" id="sidebar-avatar">A</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="sidebar-user-name">Admin</div>
+          <div class="sidebar-user-role" id="sidebar-user-role">Admin</div>
+        </div>
+        <button id="logout-btn" class="sidebar-logout" title="Logout"><i class="fas fa-sign-out-alt"></i></button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <div class="main-content">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="topbar-btn sidebar-toggle"><i class="fas fa-bars"></i></button>
+        <h1 id="page-title">Dashboard</h1>
+      </div>
+      <div class="topbar-right">
+        <button class="topbar-btn" onclick="loadDashboard()"><i class="fas fa-rotate"></i></button>
+        <button class="topbar-btn" id="notif-btn">
+          <i class="fas fa-bell"></i>
+          <span class="notif-dot" style="display:none"></span>
+        </button>
+        <div style="width:38px;height:38px;border-radius:50%;background:var(--gradient-main);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;" id="topbar-avatar">A</div>
+      </div>
+    </header>
+
+    <main class="page-content">
+
+      <!-- ── DASHBOARD PAGE ── -->
+      <div id="page-dashboard">
+        <div class="page-header">
+          <div><div class="page-title">Overview Dashboard</div><div class="page-subtitle" id="today-date"></div></div>
+          <div class="page-actions">
+            <button class="btn btn-secondary btn-sm" onclick="loadDashboard()"><i class="fas fa-sync"></i> Refresh</button>
+          </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid" id="stats-grid">
+          <div class="card stat-card teal"><div class="loading-overlay"><div class="spinner"></div></div></div>
+          <div class="card stat-card purple"><div class="loading-overlay"><div class="spinner"></div></div></div>
+          <div class="card stat-card green"><div class="loading-overlay"><div class="spinner"></div></div></div>
+          <div class="card stat-card amber"><div class="loading-overlay"><div class="spinner"></div></div></div>
+        </div>
+
+        <!-- Charts row -->
+        <div class="grid-2" style="margin-bottom:24px;">
+          <div class="card">
+            <div class="card-header">
+              <span style="font-weight:700;">Revenue (Last 30 Days)</span>
+              <select class="form-control" style="width:auto;padding:6px 12px;font-size:12px;" onchange="loadRevenueChart(this.value)">
+                <option value="7">7 Days</option>
+                <option value="30" selected>30 Days</option>
+                <option value="90">90 Days</option>
+              </select>
+            </div>
+            <div class="card-body"><div class="chart-container"><canvas id="revenueChart"></canvas></div></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><span style="font-weight:700;">Appointments by Department</span></div>
+            <div class="card-body"><div class="chart-container"><canvas id="deptChart"></canvas></div></div>
+          </div>
+        </div>
+
+        <!-- Bottom row -->
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header">
+              <span style="font-weight:700;">Recent Activity</span>
+              <span class="badge badge-teal" id="activity-count">Live</span>
+            </div>
+            <div class="card-body" id="activity-list" style="padding:0;">
+              <div style="padding:40px;text-align:center;"><div class="spinner"></div></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header"><span style="font-weight:700;">Doctor Performance</span></div>
+            <div class="card-body" id="doctor-perf" style="padding:0;">
+              <div style="padding:40px;text-align:center;"><div class="spinner"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── PATIENTS PAGE ── -->
+      <div id="page-patients" class="hidden">
+        <div class="page-header">
+          <div><div class="page-title">Patient Management</div><div class="page-subtitle">Manage all registered patients</div></div>
+          <div class="page-actions">
+            <button class="btn btn-primary" onclick="Modal.open('add-patient-modal')"><i class="fas fa-plus"></i> Add Patient</button>
+          </div>
+        </div>
+        <div class="card" style="margin-bottom:20px;">
+          <div class="card-body" style="padding:16px;">
+            <div class="search-wrap">
+              <i class="fas fa-search search-icon"></i>
+              <input type="text" id="patient-search" class="form-control" placeholder="Search by name, ID, or phone…" oninput="debounce(()=>loadPatients(),400)()">
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div id="patients-table"><div style="padding:60px;text-align:center;"><div class="spinner"></div></div></div>
+        </div>
+      </div>
+
+      <!-- ── DOCTORS PAGE ── -->
+      <div id="page-doctors" class="hidden">
+        <div class="page-header">
+          <div><div class="page-title">Doctor Management</div><div class="page-subtitle">Manage doctors and their schedules</div></div>
+          <div class="page-actions">
+            <button class="btn btn-primary" onclick="Modal.open('add-doctor-modal')"><i class="fas fa-plus"></i> Add Doctor</button>
+          </div>
+        </div>
+        <div class="card">
+          <div id="doctors-table"><div style="padding:60px;text-align:center;"><div class="spinner"></div></div></div>
+        </div>
+      </div>
+
+      <!-- ── APPOINTMENTS PAGE ── -->
+      <div id="page-appointments" class="hidden">
+        <div class="page-header">
+          <div><div class="page-title">Appointments</div></div>
+          <div class="page-actions">
+            <input type="date" class="form-control" id="appt-date-filter" style="width:auto;" onchange="loadAppointments()">
+            <select class="form-control" id="appt-status-filter" style="width:auto;" onchange="loadAppointments()">
+              <option value="">All Status</option>
+              <option value="pending">Pending</option>
+              <option value="confirmed">Confirmed</option>
+              <option value="completed">Completed</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+          </div>
+        </div>
+        <div class="card">
+          <div id="appointments-table"><div style="padding:60px;text-align:center;"><div class="spinner"></div></div></div>
+        </div>
+      </div>
+
+      <!-- ── BILLING PAGE ── -->
+      <div id="page-billing" class="hidden">
+        <div class="page-header">
+          <div><div class="page-title">Billing & Payments</div></div>
+          <div class="page-actions">
+            <button class="btn btn-primary" onclick="Modal.open('add-bill-modal')"><i class="fas fa-plus"></i> New Bill</button>
+          </div>
+        </div>
+        <div class="grid-4" style="margin-bottom:24px;" id="billing-stats">
+          <div class="card stat-card green"><div class="loading-overlay"><div class="spinner"></div></div></div>
+          <div class="card stat-card teal"><div class="loading-overlay"><div class="spinner"></div></div></div>
+          <div class="card stat-card amber"><div class="loading-overlay"><div class="spinner"></div></div></div>
+          <div class="card stat-card red"><div class="loading-overlay"><div class="spinner"></div></div></div>
+        </div>
+        <div class="card">
+          <div id="billing-table"><div style="padding:60px;text-align:center;"><div class="spinner"></div></div></div>
+        </div>
+      </div>
+
+      <!-- ── BEDS PAGE ── -->
+      <div id="page-beds" class="hidden">
+        <div class="page-header">
+          <div><div class="page-title">Bed Management</div></div>
+          <div class="page-actions">
+            <button class="btn btn-primary" onclick="Modal.open('allocate-bed-modal')"><i class="fas fa-plus"></i> Allocate Bed</button>
+          </div>
+        </div>
+        <div class="grid-4" id="bed-summary" style="margin-bottom:24px;"></div>
+        <div class="card">
+          <div class="card-header">
+            <span style="font-weight:700;">Bed Status Overview</span>
+            <div style="display:flex;gap:12px;font-size:12px;">
+              <span style="color:var(--green);">● Available</span>
+              <span style="color:var(--red);">● Occupied</span>
+              <span style="color:var(--amber);">● Maintenance</span>
+              <span style="color:var(--blue);">● Cleaning</span>
+            </div>
+          </div>
+          <div class="card-body"><div class="bed-grid" id="bed-grid"></div></div>
+        </div>
+      </div>
+
+      <!-- ── LAB PAGE ── -->
+      <div id="page-lab" class="hidden">
+        <div class="page-header">
+          <div><div class="page-title">Laboratory</div></div>
+        </div>
+        <div class="card">
+          <div id="lab-table"><div style="padding:60px;text-align:center;"><div class="spinner"></div></div></div>
+        </div>
+      </div>
+
+      <!-- ── PHARMACY PAGE ── -->
+      <div id="page-pharmacy" class="hidden">
+        <div class="page-header">
+          <div><div class="page-title">Pharmacy & Inventory</div></div>
+          <div class="page-actions">
+            <button class="btn btn-primary" onclick="Modal.open('add-medicine-modal')"><i class="fas fa-plus"></i> Add Medicine</button>
+          </div>
+        </div>
+        <div class="card">
+          <div id="pharmacy-table"><div style="padding:60px;text-align:center;"><div class="spinner"></div></div></div>
+        </div>
+      </div>
+
+      <!-- ── STAFF PAGE ── -->
+      <div id="page-staff" class="hidden">
+        <div class="page-header">
+          <div><div class="page-title">Staff Management</div></div>
+          <div class="page-actions">
+            <button class="btn btn-primary" onclick="Modal.open('add-staff-modal')"><i class="fas fa-plus"></i> Add Staff</button>
+          </div>
+        </div>
+        <div class="card">
+          <div id="staff-table"><div style="padding:60px;text-align:center;"><div class="spinner"></div></div></div>
+        </div>
+      </div>
+
+      <!-- ── DEPARTMENTS PAGE ── -->
+      <div id="page-departments" class="hidden">
+        <div class="page-header"><div><div class="page-title">Departments</div></div></div>
+        <div id="dept-grid" class="grid-3"></div>
+      </div>
+
+      <!-- ── REPORTS PAGE ── -->
+      <div id="page-reports" class="hidden">
+        <div class="page-header"><div><div class="page-title">Analytics & Reports</div></div></div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header"><span style="font-weight:700;">Patient Growth (12 Months)</span></div>
+            <div class="card-body"><div class="chart-container"><canvas id="growthChart"></canvas></div></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><span style="font-weight:700;">Appointments by Department</span></div>
+            <div class="card-body"><div class="chart-container"><canvas id="deptChart2"></canvas></div></div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- Add Patient Modal -->
+<div class="modal-overlay" id="add-patient-modal">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">Register New Patient</span><button class="modal-close">✕</button></div>
+    <div class="modal-body">
+      <form id="patient-form">
+        <div class="form-row"><div class="form-group"><label class="form-label">Full Name *</label><input type="text" id="p-name" class="form-control" required></div><div class="form-group"><label class="form-label">Phone *</label><input type="tel" id="p-phone" class="form-control" required></div></div>
+        <div class="form-group"><label class="form-label">Email *</label><input type="email" id="p-email" class="form-control" required></div>
+        <div class="form-row"><div class="form-group"><label class="form-label">Date of Birth</label><input type="date" id="p-dob" class="form-control"></div><div class="form-group"><label class="form-label">Gender</label><select id="p-gender" class="form-control"><option value="">Select</option><option value="male">Male</option><option value="female">Female</option><option value="other">Other</option></select></div></div>
+        <div class="form-row"><div class="form-group"><label class="form-label">Blood Group</label><select id="p-blood" class="form-control"><option value="">Select</option><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>AB+</option><option>AB-</option><option>O+</option><option>O-</option></select></div><div class="form-group"><label class="form-label">City</label><input type="text" id="p-city" class="form-control"></div></div>
+        <div class="form-group"><label class="form-label">Address</label><textarea id="p-address" class="form-control" rows="2"></textarea></div>
+        <div class="form-row"><div class="form-group"><label class="form-label">Emergency Contact Name</label><input type="text" id="p-ec-name" class="form-control"></div><div class="form-group"><label class="form-label">Emergency Contact Phone</label><input type="tel" id="p-ec-phone" class="form-control"></div></div>
+        <div class="form-group"><label class="form-label">Known Allergies</label><textarea id="p-allergies" class="form-control" rows="2"></textarea></div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="Modal.close('add-patient-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitPatient()"><i class="fas fa-save"></i> Register Patient</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Doctor Modal -->
+<div class="modal-overlay" id="add-doctor-modal">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">Add Doctor</span><button class="modal-close">✕</button></div>
+    <div class="modal-body">
+      <form id="doctor-form">
+        <div class="form-row"><div class="form-group"><label class="form-label">Full Name *</label><input type="text" id="d-name" class="form-control" required></div><div class="form-group"><label class="form-label">Phone *</label><input type="tel" id="d-phone" class="form-control" required></div></div>
+        <div class="form-group"><label class="form-label">Email *</label><input type="email" id="d-email" class="form-control" required></div>
+        <div class="form-row"><div class="form-group"><label class="form-label">Department</label><select id="d-dept" class="form-control"><option value="">Select Department</option></select></div><div class="form-group"><label class="form-label">Specialization</label><input type="text" id="d-spec" class="form-control"></div></div>
+        <div class="form-row"><div class="form-group"><label class="form-label">Qualification</label><input type="text" id="d-qual" class="form-control" placeholder="MBBS, MD…"></div><div class="form-group"><label class="form-label">Experience (Years)</label><input type="number" id="d-exp" class="form-control" min="0"></div></div>
+        <div class="form-row"><div class="form-group"><label class="form-label">Consultation Fee (₹)</label><input type="number" id="d-fee" class="form-control" placeholder="500"></div><div class="form-group"><label class="form-label">Max Patients/Day</label><input type="number" id="d-max" class="form-control" placeholder="20"></div></div>
+        <div class="form-group"><label class="form-label">Available Days</label><input type="text" id="d-days" class="form-control" value="Mon,Tue,Wed,Thu,Fri" placeholder="Mon,Tue,Wed,Thu,Fri"></div>
+        <div class="form-row"><div class="form-group"><label class="form-label">From Time</label><input type="time" id="d-from" class="form-control" value="09:00"></div><div class="form-group"><label class="form-label">To Time</label><input type="time" id="d-to" class="form-control" value="17:00"></div></div>
+        <div class="form-group"><label class="form-label">Bio</label><textarea id="d-bio" class="form-control" rows="2"></textarea></div>
+        <div class="form-group"><label class="form-label">Default Password</label><input type="password" id="d-pass" class="form-control" value="Doctor@123"></div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="Modal.close('add-doctor-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitDoctor()"><i class="fas fa-save"></i> Add Doctor</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Staff Modal -->
+<div class="modal-overlay" id="add-staff-modal">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">Add Staff Member</span><button class="modal-close">✕</button></div>
+    <div class="modal-body">
+      <form id="staff-form">
+        <div class="form-row"><div class="form-group"><label class="form-label">Full Name *</label><input type="text" id="s-name" class="form-control" required></div><div class="form-group"><label class="form-label">Phone</label><input type="tel" id="s-phone" class="form-control"></div></div>
+        <div class="form-group"><label class="form-label">Email *</label><input type="email" id="s-email" class="form-control" required></div>
+        <div class="form-row"><div class="form-group"><label class="form-label">Role *</label><select id="s-role" class="form-control" required><option value="">Select Role</option><option value="receptionist">Receptionist</option><option value="lab_technician">Lab Technician</option><option value="pharmacist">Pharmacist</option></select></div><div class="form-group"><label class="form-label">Designation</label><input type="text" id="s-desig" class="form-control"></div></div>
+        <div class="form-row"><div class="form-group"><label class="form-label">Department</label><select id="s-dept" class="form-control"><option value="">Select</option></select></div><div class="form-group"><label class="form-label">Salary (₹)</label><input type="number" id="s-salary" class="form-control"></div></div>
+        <div class="form-group"><label class="form-label">Join Date</label><input type="date" id="s-join" class="form-control"></div>
+        <div class="form-group"><label class="form-label">Default Password</label><input type="password" id="s-pass" class="form-control" value="Staff@123"></div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="Modal.close('add-staff-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitStaff()"><i class="fas fa-save"></i> Add Staff</button>
+    </div>
+  </div>
+</div>
+
+<script src="/js/config.js"></script>
+<script src="/js/utils.js"></script>
+<script src="/js/admin.js"></script>
+</body>
+</html>

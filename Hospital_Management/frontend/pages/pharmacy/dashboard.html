@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pharmacy Dashboard — MediCore HMS</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/main.css"><link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body>
+<div class="layout">
+  <div class="sidebar-overlay"></div>
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="sidebar-logo"><i class="fas fa-hospital-alt"></i></div>
+      <div class="sidebar-brand-text"><div class="sidebar-brand-name">MediCore HMS</div><div class="sidebar-brand-sub">Pharmacy</div></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <a class="nav-item active" data-page="dashboard" href="#" onclick="showPage('dashboard')"><i class="fas fa-th-large"></i> Dashboard</a>
+        <a class="nav-item" data-page="medicines" href="#" onclick="showPage('medicines')"><i class="fas fa-pills"></i> Medicines</a>
+        <a class="nav-item" data-page="stock" href="#" onclick="showPage('stock')"><i class="fas fa-boxes-stacked"></i> Add Stock</a>
+        <a class="nav-item" data-page="alerts" href="#" onclick="showPage('alerts')"><i class="fas fa-triangle-exclamation"></i> Alerts <span class="nav-badge" id="alert-badge">!</span></a>
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="sidebar-avatar" id="sidebar-avatar">P</div>
+        <div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Pharmacist</div><div class="sidebar-user-role" id="sidebar-user-role">pharmacist</div></div>
+        <button id="logout-btn" class="sidebar-logout"><i class="fas fa-sign-out-alt"></i></button>
+      </div>
+    </div>
+  </aside>
+  <div class="main-content">
+    <header class="topbar">
+      <div class="topbar-left"><button class="topbar-btn sidebar-toggle"><i class="fas fa-bars"></i></button><h1 id="page-title">Pharmacy Dashboard</h1></div>
+    </header>
+    <main class="page-content">
+      <!-- Dashboard -->
+      <div id="page-dashboard">
+        <div class="page-header"><div><div class="page-title">Pharmacy Dashboard</div></div></div>
+        <div class="stats-grid" id="stats-grid"></div>
+        <div class="card" style="margin-top:24px;">
+          <div class="card-header"><span style="font-weight:700;">⚠️ Low Stock Alerts</span></div>
+          <div id="low-stock-list" style="padding:0;"></div>
+        </div>
+      </div>
+
+      <!-- Medicines -->
+      <div id="page-medicines" class="hidden">
+        <div class="page-header"><div><div class="page-title">Medicine Inventory</div></div>
+          <div class="page-actions">
+            <div class="search-wrap" style="width:260px;"><i class="fas fa-search search-icon"></i><input type="text" id="med-search" class="form-control" placeholder="Search medicines…" oninput="debounce(loadMedicines,400)()"></div>
+            <select id="cat-filter" class="form-control" style="width:auto;" onchange="loadMedicines()"><option value="">All Categories</option><option value="tablet">Tablet</option><option value="capsule">Capsule</option><option value="syrup">Syrup</option><option value="injection">Injection</option><option value="cream">Cream</option><option value="inhaler">Inhaler</option></select>
+            <button class="btn btn-primary" onclick="Modal.open('add-med-modal')"><i class="fas fa-plus"></i> Add Medicine</button>
+          </div>
+        </div>
+        <div class="card"><div id="medicines-table"></div></div>
+      </div>
+
+      <!-- Stock -->
+      <div id="page-stock" class="hidden">
+        <div class="page-header"><div><div class="page-title">Add Stock</div></div></div>
+        <div class="card">
+          <div class="card-body">
+            <form id="stock-form">
+              <div class="form-group"><label class="form-label">Select Medicine *</label><select id="s-medicine" class="form-control" required><option value="">Select…</option></select></div>
+              <div class="form-row"><div class="form-group"><label class="form-label">Batch Number</label><input type="text" id="s-batch" class="form-control"></div><div class="form-group"><label class="form-label">Quantity *</label><input type="number" id="s-qty" class="form-control" required min="1"></div></div>
+              <div class="form-row"><div class="form-group"><label class="form-label">Purchase Price (₹)</label><input type="number" id="s-buy" class="form-control" step="0.01"></div><div class="form-group"><label class="form-label">Selling Price (₹)</label><input type="number" id="s-sell" class="form-control" step="0.01"></div></div>
+              <div class="form-row"><div class="form-group"><label class="form-label">Expiry Date</label><input type="date" id="s-expiry" class="form-control"></div><div class="form-group"><label class="form-label">Min Stock Alert</label><input type="number" id="s-min" class="form-control" value="10" min="1"></div></div>
+              <div class="form-row"><div class="form-group"><label class="form-label">Supplier Name</label><input type="text" id="s-supplier" class="form-control"></div><div class="form-group"><label class="form-label">Supplier Contact</label><input type="tel" id="s-supp-phone" class="form-control"></div></div>
+              <div style="display:flex;gap:12px;margin-top:8px;">
+                <button type="button" class="btn btn-primary" onclick="addStock()"><i class="fas fa-save"></i> Add Stock</button>
+                <button type="reset" class="btn btn-secondary"><i class="fas fa-times"></i> Clear</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Alerts -->
+      <div id="page-alerts" class="hidden">
+        <div class="page-header"><div><div class="page-title">Stock Alerts</div></div></div>
+        <div class="card"><div id="alerts-table"></div></div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- Add Medicine Modal -->
+<div class="modal-overlay" id="add-med-modal">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">Add New Medicine</span><button class="modal-close">✕</button></div>
+    <div class="modal-body">
+      <div class="form-row"><div class="form-group"><label class="form-label">Brand Name *</label><input type="text" id="m-name" class="form-control" required></div><div class="form-group"><label class="form-label">Generic Name</label><input type="text" id="m-generic" class="form-control"></div></div>
+      <div class="form-row"><div class="form-group"><label class="form-label">Category</label><select id="m-cat" class="form-control"><option value="tablet">Tablet</option><option value="capsule">Capsule</option><option value="syrup">Syrup</option><option value="injection">Injection</option><option value="cream">Cream</option><option value="drops">Drops</option><option value="inhaler">Inhaler</option><option value="powder">Powder</option></select></div><div class="form-group"><label class="form-label">Unit</label><input type="text" id="m-unit" class="form-control" value="strip"></div></div>
+      <div class="form-group"><label class="form-label">Manufacturer</label><input type="text" id="m-mfg" class="form-control"></div>
+      <div class="form-group"><label class="form-label">Description</label><textarea id="m-desc" class="form-control" rows="2"></textarea></div>
+      <div class="form-group"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" id="m-rx" style="width:16px;height:16px;"> <span>Requires Prescription</span></label></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="Modal.close('add-med-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="addMedicine()"><i class="fas fa-save"></i> Add Medicine</button>
+    </div>
+  </div>
+</div>
+
+<script src="/js/config.js"></script><script src="/js/utils.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  const user = Auth.requireAuth(['pharmacist']); if (!user) return;
+  Sidebar.init(); Sidebar.populate(user);
+  await Promise.all([loadDashboard(), loadMedicineDropdown()]);
+});
+
+function showPage(page) {
+  document.querySelectorAll('[id^="page-"]').forEach(p=>p.classList.add('hidden'));
+  document.getElementById(`page-${page}`)?.classList.remove('hidden');
+  Sidebar.setActive(page);
+  document.getElementById('page-title').textContent = {dashboard:'Pharmacy Dashboard',medicines:'Medicine Inventory',stock:'Add Stock',alerts:'Stock Alerts'}[page]||page;
+  const loaders={medicines:loadMedicines,alerts:loadAlerts};
+  if(loaders[page]) loaders[page]();
+}
+
+async function loadDashboard() {
+  const [statsRes, alertsRes] = await Promise.all([API.get('/pharmacy/stats'), API.get('/pharmacy/alerts')]);
+  if (statsRes?.success) {
+    const s = statsRes.data;
+    document.getElementById('stats-grid').innerHTML = `
+      <div class="card stat-card teal"><div class="card-body"><div class="stat-icon teal"><i class="fas fa-pills"></i></div><div class="stat-value">${s.total_medicines}</div><div class="stat-label">Total Medicines</div></div></div>
+      <div class="card stat-card green"><div class="card-body"><div class="stat-icon green"><i class="fas fa-boxes-stacked"></i></div><div class="stat-value">${Fmt.number(s.total_stock)}</div><div class="stat-label">Total Stock Units</div></div></div>
+      <div class="card stat-card red"><div class="card-body"><div class="stat-icon red"><i class="fas fa-triangle-exclamation"></i></div><div class="stat-value">${s.low_stock}</div><div class="stat-label">Low Stock Items</div></div></div>
+      <div class="card stat-card amber"><div class="card-body"><div class="stat-icon amber"><i class="fas fa-calendar-xmark"></i></div><div class="stat-value">${s.expiring_soon}</div><div class="stat-label">Expiring (30 days)</div></div></div>`;
+    if (s.low_stock > 0) { const badge=document.getElementById('alert-badge'); badge.textContent=s.low_stock; badge.style.display=''; }
+  }
+  if (alertsRes?.success && alertsRes.data.length) {
+    document.getElementById('low-stock-list').innerHTML = alertsRes.data.slice(0,8).map(m=>`
+      <div style="padding:14px 20px;display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(255,255,255,0.04);">
+        <div style="width:36px;height:36px;border-radius:8px;background:rgba(239,68,68,0.12);display:flex;align-items:center;justify-content:center;color:var(--red);"><i class="fas fa-pills"></i></div>
+        <div style="flex:1;"><div style="font-weight:600;font-size:13px;">${m.name}</div><div style="font-size:12px;color:var(--text-muted);">${m.category} · Supplier: ${m.supplier||'N/A'}</div></div>
+        <div style="text-align:right;"><div style="font-weight:700;color:${m.quantity<=5?'var(--red)':'var(--amber)'};">${m.quantity} left</div><div style="font-size:11px;color:var(--text-muted);">Min: ${m.min_stock_alert}</div></div>
+      </div>`).join('');
+  } else { document.getElementById('low-stock-list').innerHTML='<div class="empty-state"><i class="fas fa-check-circle" style="color:var(--green);"></i><p>All stock levels are good!</p></div>'; }
+}
+
+async function loadMedicines() {
+  const search=document.getElementById('med-search')?.value||'';
+  const cat=document.getElementById('cat-filter')?.value||'';
+  const res=await API.get(`/pharmacy/medicines?search=${encodeURIComponent(search)}&category=${cat}`);
+  buildTable('medicines-table',[{label:'Name',render:r=>`<div><strong>${r.name}</strong><br><span class="text-xs text-muted">${r.generic_name||''}</span></div>`},{label:'Category',render:r=>`<span class="badge badge-gray">${r.category}</span>`},{label:'Manufacturer',key:'manufacturer'},{label:'Stock',render:r=>`<span class="${+r.total_stock<=10?'text-red font-bold font-bold':'text-green'}">${Fmt.number(r.total_stock)} ${r.unit}</span>`},{label:'Price',render:r=>r.min_price?Fmt.currency(r.min_price):'—'},{label:'Expiry',render:r=>r.latest_expiry?Fmt.date(r.latest_expiry):'—'},{label:'Rx',render:r=>r.requires_prescription?'<span class="badge badge-amber">Rx</span>':'<span class="badge badge-green">OTC</span>'}],res?.data,'No medicines found');
+}
+
+async function loadMedicineDropdown() {
+  const res=await API.get('/pharmacy/medicines');
+  const sel=document.getElementById('s-medicine');
+  sel.innerHTML='<option value="">Select medicine…</option>'+(res?.data||[]).map(m=>`<option value="${m.id}">${m.name}</option>`).join('');
+}
+
+async function addMedicine() {
+  const data={name:document.getElementById('m-name').value,generic_name:document.getElementById('m-generic').value,category:document.getElementById('m-cat').value,unit:document.getElementById('m-unit').value,manufacturer:document.getElementById('m-mfg').value,description:document.getElementById('m-desc').value,requires_prescription:document.getElementById('m-rx').checked};
+  if (!data.name) { Toast.error('Medicine name required'); return; }
+  const res=await API.post('/pharmacy/medicines',data);
+  if(res?.success){Toast.success('Medicine added!');Modal.close('add-med-modal');loadMedicines();loadMedicineDropdown();}
+  else Toast.error(res?.message||'Failed');
+}
+
+async function addStock() {
+  const data={medicine_id:document.getElementById('s-medicine').value,batch_number:document.getElementById('s-batch').value,quantity:document.getElementById('s-qty').value,min_stock_alert:document.getElementById('s-min').value,purchase_price:document.getElementById('s-buy').value,selling_price:document.getElementById('s-sell').value,expiry_date:document.getElementById('s-expiry').value,supplier:document.getElementById('s-supplier').value,supplier_contact:document.getElementById('s-supp-phone').value};
+  if(!data.medicine_id||!data.quantity){Toast.error('Medicine and quantity required');return;}
+  const res=await API.post('/pharmacy/stock',data);
+  if(res?.success){Toast.success('Stock added!');document.getElementById('stock-form').reset();loadDashboard();}
+  else Toast.error(res?.message||'Failed');
+}
+
+async function loadAlerts() {
+  const res=await API.get('/pharmacy/alerts');
+  buildTable('alerts-table',[{label:'Medicine',key:'name'},{label:'Category',key:'category'},{label:'Current Stock',render:r=>`<span class="text-red font-bold">${r.quantity}</span>`},{label:'Min Alert',key:'min_stock_alert'},{label:'Expiry',render:r=>Fmt.date(r.expiry_date)},{label:'Supplier',key:'supplier'},{label:'Alert',render:r=>r.quantity<=r.min_stock_alert?'<span class="badge badge-red">Low Stock</span>':'<span class="badge badge-amber">Expiring Soon</span>'}],res?.data,'No alerts — everything looks good!');
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lab Dashboard — MediCore HMS</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/main.css"><link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body>
+<div class="layout">
+  <div class="sidebar-overlay"></div>
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="sidebar-logo"><i class="fas fa-hospital-alt"></i></div>
+      <div class="sidebar-brand-text"><div class="sidebar-brand-name">MediCore HMS</div><div class="sidebar-brand-sub">Laboratory</div></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <a class="nav-item active" data-page="dashboard" href="#" onclick="showPage('dashboard')"><i class="fas fa-th-large"></i> Dashboard</a>
+        <a class="nav-item" data-page="pending" href="#" onclick="showPage('pending')"><i class="fas fa-flask"></i> Pending Tests</a>
+        <a class="nav-item" data-page="completed" href="#" onclick="showPage('completed')"><i class="fas fa-check-circle"></i> Completed</a>
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="sidebar-avatar" id="sidebar-avatar">L</div>
+        <div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Lab Tech</div><div class="sidebar-user-role" id="sidebar-user-role">lab_technician</div></div>
+        <button id="logout-btn" class="sidebar-logout"><i class="fas fa-sign-out-alt"></i></button>
+      </div>
+    </div>
+  </aside>
+  <div class="main-content">
+    <header class="topbar">
+      <div class="topbar-left"><button class="topbar-btn sidebar-toggle"><i class="fas fa-bars"></i></button><h1 id="page-title">Lab Dashboard</h1></div>
+    </header>
+    <main class="page-content">
+      <div id="page-dashboard">
+        <div class="page-header"><div><div class="page-title">Laboratory Dashboard</div><div class="page-subtitle" id="today-date"></div></div></div>
+        <div class="stats-grid" id="stats-grid"></div>
+        <div class="card" style="margin-top:24px;">
+          <div class="card-header"><span style="font-weight:700;">Today's Urgent Tests</span><span class="badge badge-red">Urgent</span></div>
+          <div id="urgent-list" style="padding:0;"></div>
+        </div>
+      </div>
+      <div id="page-pending" class="hidden">
+        <div class="page-header"><div><div class="page-title">Pending Tests</div></div>
+          <select id="priority-filter" class="form-control" style="width:auto;" onchange="loadTests('pending')"><option value="">All Priority</option><option value="urgent">Urgent</option><option value="emergency">Emergency</option><option value="normal">Normal</option></select>
+        </div>
+        <div class="card"><div id="pending-table"></div></div>
+      </div>
+      <div id="page-completed" class="hidden">
+        <div class="page-header"><div><div class="page-title">Completed Tests</div></div></div>
+        <div class="card"><div id="completed-table"></div></div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- Add Result Modal -->
+<div class="modal-overlay" id="result-modal">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">Add Test Result</span><button class="modal-close">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="result-test-id">
+      <div id="result-test-info" style="padding:12px;background:rgba(255,255,255,0.03);border-radius:8px;margin-bottom:16px;font-size:13px;"></div>
+      <div id="result-rows">
+        <div class="result-row" style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-bottom:8px;">
+          <div><label class="form-label">Parameter</label><input type="text" class="form-control res-param" placeholder="Hemoglobin"></div>
+          <div><label class="form-label">Result</label><input type="text" class="form-control res-value" placeholder="13.5"></div>
+          <div><label class="form-label">Unit</label><input type="text" class="form-control res-unit" placeholder="g/dL"></div>
+          <div><label class="form-label">Ref Range</label><input type="text" class="form-control res-range" placeholder="12-16"></div>
+        </div>
+      </div>
+      <button class="btn btn-secondary btn-sm" onclick="addResultRow()"><i class="fas fa-plus"></i> Add Parameter</button>
+      <div class="form-group" style="margin-top:16px;"><label class="form-label">Interpretation / Remarks</label><textarea id="res-interpretation" class="form-control" rows="2"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="Modal.close('result-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitResults()"><i class="fas fa-save"></i> Save Results</button>
+    </div>
+  </div>
+</div>
+
+<script src="/js/config.js"></script><script src="/js/utils.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  const user = Auth.requireAuth(['lab_technician']); if (!user) return;
+  Sidebar.init(); Sidebar.populate(user);
+  document.getElementById('today-date').textContent = new Date().toLocaleDateString('en-IN',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  await loadDashboard();
+});
+
+function showPage(page) {
+  document.querySelectorAll('[id^="page-"]').forEach(p=>p.classList.add('hidden'));
+  document.getElementById(`page-${page}`)?.classList.remove('hidden');
+  Sidebar.setActive(page);
+  document.getElementById('page-title').textContent = {dashboard:'Lab Dashboard',pending:'Pending Tests',completed:'Completed Tests'}[page]||page;
+  if (page==='pending') loadTests('pending');
+  if (page==='completed') loadTests('completed');
+}
+
+async function loadDashboard() {
+  const res = await API.get('/lab/stats');
+  if (res?.success) {
+    const s = res.data;
+    document.getElementById('stats-grid').innerHTML = `
+      <div class="card stat-card amber"><div class="card-body"><div class="stat-icon amber"><i class="fas fa-hourglass"></i></div><div class="stat-value">${s.requested||0}</div><div class="stat-label">Awaiting Sample</div></div></div>
+      <div class="card stat-card purple"><div class="card-body"><div class="stat-icon purple"><i class="fas fa-flask"></i></div><div class="stat-value">${s.in_progress||0}</div><div class="stat-label">In Progress</div></div></div>
+      <div class="card stat-card green"><div class="card-body"><div class="stat-icon green"><i class="fas fa-check"></i></div><div class="stat-value">${s.completed||0}</div><div class="stat-label">Completed Today</div></div></div>
+      <div class="card stat-card red"><div class="card-body"><div class="stat-icon red"><i class="fas fa-bolt"></i></div><div class="stat-value">${s.urgent_pending||0}</div><div class="stat-label">Urgent Pending</div></div></div>`;
+  }
+  const urgent = await API.get('/lab/tests?priority=urgent&status=requested&limit=10');
+  const ul = document.getElementById('urgent-list');
+  if (urgent?.success && urgent.data.length) {
+    ul.innerHTML = urgent.data.map(t=>`
+      <div style="padding:14px 20px;display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(255,255,255,0.04);">
+        <div style="width:36px;height:36px;border-radius:8px;background:rgba(239,68,68,0.15);display:flex;align-items:center;justify-content:center;color:var(--red);"><i class="fas fa-bolt"></i></div>
+        <div style="flex:1;"><div style="font-weight:600;font-size:13px;">${t.test_name}</div><div style="font-size:12px;color:var(--text-muted);">${t.patient_name} · ${t.test_number}</div></div>
+        <button class="btn btn-primary btn-sm" onclick="openResultModal(${t.id},'${t.test_name}','${t.patient_name}')"><i class="fas fa-plus"></i> Add Result</button>
+      </div>`).join('');
+  } else { ul.innerHTML='<div class="empty-state"><i class="fas fa-flask"></i><p>No urgent tests</p></div>'; }
+}
+
+async function loadTests(statusGroup) {
+  const statuses = statusGroup==='completed' ? 'completed' : 'requested,sample_collected,in_progress';
+  const priority = document.getElementById('priority-filter')?.value||'';
+  const res = await API.get(`/lab/tests?status=${statuses.split(',')[0]}${priority?'&priority='+priority:''}&limit=50`);
+  const tableId = statusGroup==='completed'?'completed-table':'pending-table';
+  buildTable(tableId,[{label:'Test No.',key:'test_number'},{label:'Patient',key:'patient_name'},{label:'Test',key:'test_name'},{label:'Type',key:'test_type'},{label:'Doctor',key:'doctor_name'},{label:'Priority',render:r=>getBadge(r.priority)},{label:'Status',render:r=>getBadge(r.status)},{label:'Requested',render:r=>Fmt.date(r.requested_date)},
+    ...(statusGroup==='pending'?[{label:'Actions',render:r=>`<div style="display:flex;gap:6px;"><button class="btn btn-secondary btn-sm" onclick="updateStatus(${r.id},'sample_collected')">Collected</button><button class="btn btn-primary btn-sm" onclick="openResultModal(${r.id},'${r.test_name}','${r.patient_name}')">Add Result</button></div>`}]:[])
+  ],res?.data,'No tests found');
+}
+
+function openResultModal(testId, testName, patientName) {
+  document.getElementById('result-test-id').value = testId;
+  document.getElementById('result-test-info').innerHTML = `<strong>${testName}</strong> · Patient: ${patientName}`;
+  Modal.open('result-modal');
+}
+
+function addResultRow() {
+  const row = document.createElement('div');
+  row.className='result-row'; row.style.cssText='display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-bottom:8px;';
+  row.innerHTML=`<input type="text" class="form-control res-param" placeholder="Parameter"><input type="text" class="form-control res-value" placeholder="Result"><input type="text" class="form-control res-unit" placeholder="Unit"><input type="text" class="form-control res-range" placeholder="Reference">`;
+  document.getElementById('result-rows').appendChild(row);
+}
+
+async function submitResults() {
+  const testId = document.getElementById('result-test-id').value;
+  const rows = document.querySelectorAll('.result-row');
+  for (const row of rows) {
+    const data = { parameter_name:row.querySelector('.res-param').value, result_value:row.querySelector('.res-value').value, unit:row.querySelector('.res-unit').value, reference_range:row.querySelector('.res-range').value, interpretation:document.getElementById('res-interpretation').value };
+    if (data.result_value) await API.post(`/lab/tests/${testId}/results`, data);
+  }
+  Toast.success('Results saved!'); Modal.close('result-modal'); loadDashboard();
+}
+
+async function updateStatus(id, status) {
+  const res = await API.put(`/lab/tests/${id}/status`, { status });
+  if (res?.success) { Toast.success('Status updated'); loadTests('pending'); }
+  else Toast.error(res?.message);
+}
+</script>
+</body>
+</html>

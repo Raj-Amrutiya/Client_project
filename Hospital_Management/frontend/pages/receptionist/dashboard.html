@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Receptionist Dashboard — MediCore HMS</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="/css/main.css"><link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body>
+<div class="layout">
+  <div class="sidebar-overlay"></div>
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="sidebar-logo"><i class="fas fa-hospital-alt"></i></div>
+      <div class="sidebar-brand-text"><div class="sidebar-brand-name">MediCore HMS</div><div class="sidebar-brand-sub">Reception</div></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <a class="nav-item active" data-page="dashboard" href="#" onclick="showPage('dashboard')"><i class="fas fa-th-large"></i> Dashboard</a>
+        <a class="nav-item" data-page="register" href="#" onclick="showPage('register')"><i class="fas fa-user-plus"></i> Register Patient</a>
+        <a class="nav-item" data-page="appointments" href="#" onclick="showPage('appointments')"><i class="fas fa-calendar-check"></i> Appointments</a>
+        <a class="nav-item" data-page="beds" href="#" onclick="showPage('beds')"><i class="fas fa-bed"></i> Beds</a>
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="sidebar-avatar" id="sidebar-avatar">R</div>
+        <div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Receptionist</div><div class="sidebar-user-role" id="sidebar-user-role">receptionist</div></div>
+        <button id="logout-btn" class="sidebar-logout"><i class="fas fa-sign-out-alt"></i></button>
+      </div>
+    </div>
+  </aside>
+  <div class="main-content">
+    <header class="topbar">
+      <div class="topbar-left"><button class="topbar-btn sidebar-toggle"><i class="fas fa-bars"></i></button><h1 id="page-title">Reception Desk</h1></div>
+      <div class="topbar-right"><div style="width:38px;height:38px;border-radius:50%;background:var(--gradient-main);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;" id="topbar-avatar">R</div></div>
+    </header>
+    <main class="page-content">
+      <!-- Dashboard -->
+      <div id="page-dashboard">
+        <div class="page-header"><div><div class="page-title">Reception Desk</div><div class="page-subtitle" id="today-date"></div></div>
+          <button class="btn btn-primary" onclick="Modal.open('book-appt-modal')"><i class="fas fa-plus"></i> Quick Book</button>
+        </div>
+        <div class="stats-grid" id="stats-grid"></div>
+        <div class="grid-2" style="margin-top:24px;">
+          <div class="card"><div class="card-header"><span style="font-weight:700;">Today's Queue</span></div><div id="queue-list" style="padding:0;"></div></div>
+          <div class="card"><div class="card-header"><span style="font-weight:700;">Bed Availability</span></div><div id="bed-avail" style="padding:0;"></div></div>
+        </div>
+      </div>
+
+      <!-- Register Patient -->
+      <div id="page-register" class="hidden">
+        <div class="page-header"><div><div class="page-title">Register New Patient</div></div></div>
+        <div class="card"><div class="card-body">
+          <form id="register-form">
+            <div class="form-row"><div class="form-group"><label class="form-label">Full Name *</label><input type="text" id="p-name" class="form-control" required></div><div class="form-group"><label class="form-label">Phone *</label><input type="tel" id="p-phone" class="form-control" required></div></div>
+            <div class="form-group"><label class="form-label">Email *</label><input type="email" id="p-email" class="form-control" required></div>
+            <div class="form-row"><div class="form-group"><label class="form-label">DOB</label><input type="date" id="p-dob" class="form-control"></div><div class="form-group"><label class="form-label">Gender</label><select id="p-gender" class="form-control"><option value="">Select</option><option value="male">Male</option><option value="female">Female</option><option value="other">Other</option></select></div></div>
+            <div class="form-row"><div class="form-group"><label class="form-label">Blood Group</label><select id="p-blood" class="form-control"><option value="">Select</option><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>AB+</option><option>AB-</option><option>O+</option><option>O-</option></select></div><div class="form-group"><label class="form-label">City</label><input type="text" id="p-city" class="form-control"></div></div>
+            <div class="form-group"><label class="form-label">Address</label><textarea id="p-address" class="form-control" rows="2"></textarea></div>
+            <div class="form-row"><div class="form-group"><label class="form-label">Emergency Contact</label><input type="text" id="p-ec-name" class="form-control"></div><div class="form-group"><label class="form-label">Emergency Phone</label><input type="tel" id="p-ec-phone" class="form-control"></div></div>
+            <button type="button" class="btn btn-primary" onclick="registerPatient()"><i class="fas fa-save"></i> Register</button>
+            <button type="reset" class="btn btn-secondary"><i class="fas fa-times"></i> Clear</button>
+          </form>
+        </div></div>
+      </div>
+
+      <!-- Appointments -->
+      <div id="page-appointments" class="hidden">
+        <div class="page-header"><div><div class="page-title">Appointments</div></div>
+          <div class="page-actions">
+            <input type="date" id="appt-date" class="form-control" style="width:auto;" onchange="loadAppointments()">
+            <button class="btn btn-primary" onclick="Modal.open('book-appt-modal')"><i class="fas fa-plus"></i> Book</button>
+          </div>
+        </div>
+        <div class="card"><div id="appts-table"></div></div>
+      </div>
+
+      <!-- Beds -->
+      <div id="page-beds" class="hidden">
+        <div class="page-header"><div><div class="page-title">Bed Management</div></div>
+          <button class="btn btn-primary" onclick="Modal.open('allocate-modal')"><i class="fas fa-plus"></i> Admit</button>
+        </div>
+        <div class="grid-4" id="bed-summary" style="margin-bottom:24px;"></div>
+        <div class="card"><div class="card-header"><span style="font-weight:700;">Active Admissions</span></div><div id="admissions-table"></div></div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- Book Appointment Modal -->
+<div class="modal-overlay" id="book-appt-modal">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">Book Appointment</span><button class="modal-close">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Patient</label><input type="text" id="ba-patient-search" class="form-control" placeholder="Search patient…" oninput="searchPatient('ba')"><div id="ba-patient-results"></div><input type="hidden" id="ba-patient-id"></div>
+      <div class="form-group"><label class="form-label">Doctor</label><select id="ba-doctor" class="form-control"><option value="">Select</option></select></div>
+      <div class="form-row"><div class="form-group"><label class="form-label">Date</label><input type="date" id="ba-date" class="form-control"></div><div class="form-group"><label class="form-label">Time</label><input type="time" id="ba-time" class="form-control"></div></div>
+      <div class="form-group"><label class="form-label">Type</label><select id="ba-type" class="form-control"><option value="walk_in">Walk-in</option><option value="online">Online</option><option value="emergency">Emergency</option></select></div>
+      <div class="form-group"><label class="form-label">Reason</label><textarea id="ba-reason" class="form-control" rows="2"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="Modal.close('book-appt-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="bookAppointment()"><i class="fas fa-calendar-check"></i> Book</button>
+    </div>
+  </div>
+</div>
+
+<!-- Allocate Bed Modal -->
+<div class="modal-overlay" id="allocate-modal">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">Admit Patient</span><button class="modal-close">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Patient</label><input type="text" id="al-patient-search" class="form-control" placeholder="Search…" oninput="searchPatient('al')"><div id="al-patient-results"></div><input type="hidden" id="al-patient-id"></div>
+      <div class="form-group"><label class="form-label">Ward</label><select id="al-ward" class="form-control" onchange="loadAvailBeds()"><option value="">Select</option><option value="general">General</option><option value="private">Private</option><option value="icu">ICU</option><option value="emergency">Emergency</option><option value="surgical">Surgical</option><option value="maternity">Maternity</option></select></div>
+      <div class="form-group"><label class="form-label">Bed</label><select id="al-bed" class="form-control"><option value="">Select ward first</option></select></div>
+      <div class="form-group"><label class="form-label">Diagnosis</label><textarea id="al-diag" class="form-control" rows="2"></textarea></div>
+      <div class="form-group"><label class="form-label">Expected Discharge</label><input type="date" id="al-discharge" class="form-control"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="Modal.close('allocate-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="admitPatient()"><i class="fas fa-bed"></i> Admit</button>
+    </div>
+  </div>
+</div>
+
+<script src="/js/config.js"></script><script src="/js/utils.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  const user = Auth.requireAuth(['receptionist']); if (!user) return;
+  Sidebar.init(); Sidebar.populate(user);
+  document.getElementById('topbar-avatar').textContent = Fmt.initials(user.name);
+  document.getElementById('today-date').textContent = new Date().toLocaleDateString('en-IN',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  // Load doctors for dropdown
+  const docRes = await API.get('/doctors');
+  if (docRes?.success) {
+    document.getElementById('ba-doctor').innerHTML = '<option value="">Select Doctor</option>' + docRes.data.map(d=>`<option value="${d.id}">${d.name} — ${d.specialization||'General'}</option>`).join('');
+  }
+  await loadDashboard();
+});
+
+function showPage(page) {
+  document.querySelectorAll('[id^="page-"]').forEach(p=>p.classList.add('hidden'));
+  document.getElementById(`page-${page}`)?.classList.remove('hidden');
+  Sidebar.setActive(page);
+  document.getElementById('page-title').textContent = {dashboard:'Reception Desk',register:'Register Patient',appointments:'Appointments',beds:'Bed Management'}[page]||page;
+  if (page==='appointments') loadAppointments();
+  if (page==='beds') loadBeds();
+}
+
+async function loadDashboard() {
+  const [summary, bedAvail] = await Promise.all([API.get('/appointments/today/summary'), API.get('/beds/availability')]);
+  if (summary?.success) {
+    const s = summary.data;
+    document.getElementById('stats-grid').innerHTML = `
+      <div class="card stat-card teal"><div class="card-body"><div class="stat-icon teal"><i class="fas fa-calendar"></i></div><div class="stat-value">${s.total||0}</div><div class="stat-label">Today Total</div></div></div>
+      <div class="card stat-card amber"><div class="card-body"><div class="stat-icon amber"><i class="fas fa-clock"></i></div><div class="stat-value">${s.pending||0}</div><div class="stat-label">Pending</div></div></div>
+      <div class="card stat-card green"><div class="card-body"><div class="stat-icon green"><i class="fas fa-check"></i></div><div class="stat-value">${s.completed||0}</div><div class="stat-label">Completed</div></div></div>
+      <div class="card stat-card red"><div class="card-body"><div class="stat-icon red"><i class="fas fa-times"></i></div><div class="stat-value">${s.cancelled||0}</div><div class="stat-label">Cancelled</div></div></div>`;
+  }
+  // Queue
+  const today = new Date().toISOString().split('T')[0];
+  const appts = await API.get(`/appointments?date=${today}&limit=20`);
+  const queueEl = document.getElementById('queue-list');
+  if (appts?.success && appts.data.length) {
+    queueEl.innerHTML = appts.data.filter(a=>a.status!=='completed'&&a.status!=='cancelled').map(a=>`
+      <div style="padding:12px 20px;display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(255,255,255,0.04);">
+        <div style="width:32px;height:32px;border-radius:8px;background:var(--teal-dim);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--teal);font-size:12px;">#${a.token_number}</div>
+        <div style="flex:1;"><div style="font-weight:600;font-size:13px;">${a.patient_name}</div><div style="font-size:11px;color:var(--text-muted);">${a.doctor_name} · ${Fmt.time(a.appointment_time)}</div></div>
+        ${getBadge(a.status)}
+      </div>`).join('');
+  } else { queueEl.innerHTML='<div class="empty-state"><i class="fas fa-calendar"></i><p>No pending queue</p></div>'; }
+  // Bed availability
+  if (bedAvail?.success) {
+    document.getElementById('bed-avail').innerHTML = bedAvail.data.map(w=>`
+      <div style="padding:12px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.04);">
+        <span style="font-size:13px;font-weight:600;text-transform:capitalize;">${w.ward_type.replace('_',' ')}</span>
+        <span><span class="text-green font-bold">${w.available}</span> / ${w.total}</span>
+      </div>`).join('');
+  }
+}
+
+async function searchPatient(prefix) {
+  const q = document.getElementById(`${prefix}-patient-search`).value;
+  if (!q || q.length<2) return;
+  const res = await API.get(`/patients?search=${encodeURIComponent(q)}&limit=5`);
+  document.getElementById(`${prefix}-patient-results`).innerHTML = (res?.data||[]).map(p=>`<button class="btn btn-secondary btn-sm" style="margin:4px;" onclick="document.getElementById('${prefix}-patient-id').value=${p.id};document.getElementById('${prefix}-patient-search').value='${p.name}';document.getElementById('${prefix}-patient-results').innerHTML=''">${p.name} (${p.patient_id})</button>`).join('');
+}
+
+async function registerPatient() {
+  const data = { name:document.getElementById('p-name').value, phone:document.getElementById('p-phone').value, email:document.getElementById('p-email').value, dob:document.getElementById('p-dob').value, gender:document.getElementById('p-gender').value, blood_group:document.getElementById('p-blood').value, city:document.getElementById('p-city').value, address:document.getElementById('p-address').value, emergency_contact_name:document.getElementById('p-ec-name').value, emergency_contact_phone:document.getElementById('p-ec-phone').value };
+  if (!data.name||!data.email||!data.phone) { Toast.error('Name, email, phone required'); return; }
+  const res = await API.post('/patients', data);
+  if (res?.success) { Toast.success('Patient registered: '+res.patientId); document.getElementById('register-form').reset(); }
+  else Toast.error(res?.message||'Failed');
+}
+
+async function bookAppointment() {
+  const data = { patient_id:document.getElementById('ba-patient-id').value, doctor_id:document.getElementById('ba-doctor').value, appointment_date:document.getElementById('ba-date').value, appointment_time:document.getElementById('ba-time').value, type:document.getElementById('ba-type').value, reason:document.getElementById('ba-reason').value };
+  if (!data.patient_id||!data.doctor_id||!data.appointment_date||!data.appointment_time) { Toast.error('All fields required'); return; }
+  const res = await API.post('/appointments', data);
+  if (res?.success) { Toast.success('Booked: '+res.appointmentNumber); Modal.close('book-appt-modal'); loadDashboard(); }
+  else Toast.error(res?.message||'Failed');
+}
+
+async function loadAppointments() {
+  const date = document.getElementById('appt-date')?.value||new Date().toISOString().split('T')[0];
+  const res = await API.get(`/appointments?date=${date}&limit=100`);
+  buildTable('appts-table',[{label:'Token',render:r=>`<span class="badge badge-teal">#${r.token_number}</span>`},{label:'Patient',key:'patient_name'},{label:'Doctor',key:'doctor_name'},{label:'Time',render:r=>Fmt.time(r.appointment_time)},{label:'Type',key:'type'},{label:'Status',render:r=>getBadge(r.status)},{label:'Actions',render:r=>r.status==='pending'?`<button class="btn btn-danger btn-sm" onclick="cancelAppt(${r.id})">Cancel</button>`:'—'}],res?.data);
+}
+async function cancelAppt(id) { if(!confirm('Cancel?'))return; await API.put(`/appointments/${id}/status`,{status:'cancelled'}); Toast.success('Cancelled'); loadAppointments(); }
+
+async function loadBeds() {
+  const [availRes, admRes] = await Promise.all([API.get('/beds/availability'), API.get('/beds/admissions?status=active')]);
+  if (availRes?.success) {
+    document.getElementById('bed-summary').innerHTML = availRes.data.map(w=>`
+      <div class="card stat-card teal"><div class="card-body"><div class="stat-icon ${w.available>0?'green':'red'}"><i class="fas fa-bed"></i></div><div class="stat-value">${w.available}/${w.total}</div><div class="stat-label">${w.ward_type.replace('_',' ')}</div></div></div>`).join('');
+  }
+  buildTable('admissions-table',[{label:'Bed',key:'bed_number'},{label:'Ward',key:'ward_name'},{label:'Patient',key:'patient_name'},{label:'Admitted',render:r=>Fmt.date(r.admit_date)},{label:'Actions',render:r=>`<button class="btn btn-secondary btn-sm" onclick="discharge(${r.id})"><i class="fas fa-sign-out-alt"></i> Discharge</button>`}],admRes?.data,'No admissions');
+}
+
+async function loadAvailBeds() {
+  const ward = document.getElementById('al-ward').value;
+  const res = await API.get(`/beds?ward_type=${ward}&status=available`);
+  document.getElementById('al-bed').innerHTML = '<option value="">Select Bed</option>'+(res?.data||[]).map(b=>`<option value="${b.id}">${b.bed_number} — ₹${b.daily_rate}/day</option>`).join('');
+}
+
+async function admitPatient() {
+  const data = {bed_id:document.getElementById('al-bed').value, patient_id:document.getElementById('al-patient-id').value, expected_discharge_date:document.getElementById('al-discharge').value, diagnosis_at_admission:document.getElementById('al-diag').value};
+  if (!data.bed_id||!data.patient_id) { Toast.error('Select patient and bed'); return; }
+  const res = await API.post('/beds/allocate', data);
+  if (res?.success) { Toast.success('Patient admitted!'); Modal.close('allocate-modal'); loadBeds(); }
+  else Toast.error(res?.message||'Failed');
+}
+
+async function discharge(allocId) { if(!confirm('Discharge?'))return; await API.put(`/beds/discharge/${allocId}`,{discharge_notes:'Discharged'}); Toast.success('Discharged'); loadBeds(); }
+</script>
+</body>
+</html>
