@@ -135,18 +135,73 @@
   </div>
 </div>
 
+<!-- Payment Modal -->
+<div class="modal-overlay" id="payment-modal">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">Make Payment</span><button class="modal-close">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Bill Number</label>
+        <input type="text" id="pay-bill-no" class="form-control" readonly>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Bill Amount</label>
+        <input type="text" id="pay-bill-amount" class="form-control" readonly>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Balance Due</label>
+        <input type="text" id="pay-bill-balance" class="form-control" readonly>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Payment Amount <span class="text-red">*</span></label>
+        <input type="number" id="pay-amount" class="form-control" placeholder="Enter amount to pay" min="0.01" step="0.01">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Payment Method <span class="text-red">*</span></label>
+        <select id="pay-method" class="form-control">
+          <option value="">Select Payment Method</option>
+          <option value="cash">💵 Cash</option>
+          <option value="card">💳 Credit/Debit Card</option>
+          <option value="upi">🔐 UPI</option>
+          <option value="bank_transfer">🏦 Bank Transfer</option>
+          <option value="insurance">📋 Insurance</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Transaction ID</label>
+        <input type="text" id="pay-txn-id" class="form-control" placeholder="Optional - for online payments">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Notes</label>
+        <textarea id="pay-notes" class="form-control" rows="2" placeholder="Optional notes"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="Modal.close('payment-modal')">Cancel</button>
+      <button class="btn btn-success" onclick="processPayment()"><i class="fas fa-check-circle"></i> Submit Payment</button>
+    </div>
+  </div>
+</div>
+
 <script src="/js/config.js"></script><script src="/js/utils.js"></script>
 <script>
 let myPatientId = null;
+let currentBillId = null;
 document.addEventListener('DOMContentLoaded', async () => {
   const user = Auth.requireAuth(['patient']); if (!user) return;
   Sidebar.init(); Sidebar.populate(user);
+  
+  // Setup modal close buttons
+  document.querySelectorAll('.modal-close').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const modal = btn.closest('.modal-overlay');
+      if (modal && modal.id) Modal.close(modal.id);
+    });
+  });
+  
   document.getElementById('today-date').textContent = new Date().toLocaleDateString('en-IN',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
   document.getElementById('greeting').textContent = `Hello, ${user.name} 👋`;
   document.getElementById('ba-date').min = new Date().toISOString().split('T')[0];
-  // Get patient record
-  const meRes = await API.get('/auth/me');
-  const pRes = await API.get('/patients?limit=1');
   // Load doctors for booking
   const docRes = await API.get('/doctors');
   const depts  = await API.get('/departments');
@@ -190,31 +245,99 @@ async function loadDashboard() {
 }
 
 async function bookAppointment() {
-  const meRes = await API.get('/auth/me');
-  const patRes = await API.get('/patients?limit=100');
-  const myPat = (patRes?.data||[]).find(p=>p.email === meRes?.user?.email);
-  if (!myPat) { Toast.error('Missing profile connection. Refresh page.'); return; }
-  const docId = document.getElementById('ba-doctor').value;
-  const appDate = document.getElementById('ba-date').value;
-  const appTime = document.getElementById('ba-time').value;
-  
-  if (!docId || !appDate || !appTime) { 
-    Toast.error(`Please select a Doctor, Date, and Time.`); 
+  const user = Auth.getUser();
+  if (!user?.patient_id) { 
+    Toast.error('❌ Missing profile connection. Refresh page.'); 
     return; 
   }
+  
+  const btn = typeof event !== 'undefined' ? event?.target : null;
+  if (btn) btn.disabled = true;
+  
+  const docId = (document.getElementById('ba-doctor').value || '').trim();
+  const appDate = (document.getElementById('ba-date').value || '').trim();
+  const appTime = (document.getElementById('ba-time').value || '').trim();
+  const appType = (document.getElementById('ba-type').value || 'walk_in').trim();
+  const appReason = (document.getElementById('ba-reason').value || '').trim();
+  
+  // Validation
+  if (!docId) {
+    Toast.error('⚠️ Please select a doctor');
+    if (btn) btn.disabled = false;
+    return;
+  }
+  
+  if (!appDate) {
+    Toast.error('⚠️ Please select an appointment date');
+    if (btn) btn.disabled = false;
+    return;
+  }
+  
+  if (!appTime) {
+    Toast.error('⚠️ Please select an appointment time');
+    if (btn) btn.disabled = false;
+    return;
+  }
+  
+  // Validate date is not in past
+  const selectedDate = new Date(`${appDate}T00:00:00`);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  if (selectedDate < today) {
+    Toast.error('⚠️ Cannot book appointment in the past');
+    if (btn) btn.disabled = false;
+    return;
+  }
 
-  const data = { 
-    patient_id: myPat.id, 
-    doctor_id: docId, 
-    appointment_date: appDate, 
-    appointment_time: appTime, 
-    type: document.getElementById('ba-type').value, 
-    reason: document.getElementById('ba-reason').value 
+  // Validate time is not in past for today
+  if (selectedDate.getTime() === today.getTime()) {
+    const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/;
+    if (timeRegex.test(appTime)) {
+      const [hours, minutes] = appTime.split(':').map(Number);
+      const now = new Date();
+      if (hours < now.getHours() || (hours === now.getHours() && minutes < now.getMinutes())) {
+        Toast.error('⚠️ Cannot book an appointment at a past time today');
+        if (btn) btn.disabled = false;
+        return;
+      }
+    }
+  }
+  
+  const data = {
+    patient_id: user.patient_id,
+    doctor_id: docId,
+    appointment_date: appDate,
+    appointment_time: appTime,
+    type: appType,
+    reason: appReason || 'General Checkup'
   };
-  if (!data.doctor_id||!data.appointment_date||!data.appointment_time) { Toast.error('Please fill all fields'); return; }
-  const res = await API.post('/appointments', data);
-  if (res?.success) { Toast.success('Appointment booked!'); Modal.close('book-appt-modal'); loadDashboard(); }
-  else Toast.error(res?.message||'Booking failed');
+  
+  try {
+    const res = await API.post('/appointments', data);
+    if (btn) btn.disabled = false;
+    
+    if (res?.success) {
+      Toast.success('✅ Appointment booked successfully!');
+      Modal.close('book-appt-modal');
+      
+      // Clear form
+      document.getElementById('ba-doctor').value = '';
+      document.getElementById('ba-date').value = '';
+      document.getElementById('ba-time').value = '';
+      document.getElementById('ba-type').value = 'walk_in';
+      document.getElementById('ba-reason').value = '';
+      
+      setTimeout(() => loadDashboard(), 800);
+    } else {
+      const errorMsg = res?.errors?.[0]?.msg || res?.message || 'Booking failed';
+      Toast.error(`❌ ${errorMsg}`);
+    }
+  } catch (err) {
+    if (btn) btn.disabled = false;
+    Toast.error('❌ Network error - please try again');
+    console.error('Booking error:', err);
+  }
 }
 
 async function loadAppointments() {
@@ -242,7 +365,32 @@ async function loadRecords() {
   const res = await API.get('/appointments?status=completed&limit=50');
   buildTable('records-table',[{label:'Doctor',key:'doctor_name'},{label:'Date',render:r=>Fmt.date(r.appointment_date)},{label:'Reason',key:'reason'},{label:'Status',render:r=>getBadge(r.status)}],res?.data,'No medical records found');
 }
-async function loadPrescriptions() { buildTable('rx-table',[{label:'Info',render:r=>'No prescriptions API yet'}],[],'No prescriptions found'); }
+async function loadPrescriptions() { 
+  const res = await API.get('/medical-records?limit=50');
+  if (!res?.data) { buildTable('rx-table',[]); return; }
+  
+  const prescriptions = [];
+  (res.data || []).forEach(record => {
+    if (record.prescription && Array.isArray(record.prescription) && record.prescription.length > 0) {
+      record.prescription.forEach(rx => {
+        prescriptions.push({
+          ...rx,
+          doctor_name: record.doctor_name || 'N/A',
+          record_date: record.created_at,
+          medicine_count: rx.items ? rx.items.length : 0
+        });
+      });
+    }
+  });
+  
+  buildTable('rx-table',[
+    {label:'Doctor',key:'doctor_name'},
+    {label:'Date',render:r=>Fmt.date(r.record_date)},
+    {label:'Medicines',render:r=>`${r.medicine_count} item(s)`},
+    {label:'Status',render:r=>`<span class="badge ${r.status === 'dispensed' ? 'badge-green' : r.status === 'cancelled' ? 'badge-red' : 'badge-amber'}">${r.status || 'Pending'}</span>`}
+  ],prescriptions,'No prescriptions found');
+}
+
 function selectDoctorAndBook(btn) {
   const docId = btn.getAttribute('data-doc-id');
   const sel = document.getElementById('ba-doctor');
@@ -251,14 +399,108 @@ function selectDoctorAndBook(btn) {
 }
 async function loadBills() {
   const res = await API.get('/billing?limit=50');
-  buildTable('bills-table',[{label:'Bill No.',key:'bill_number'},{label:'Amount',render:r=>Fmt.currency(r.net_amount)},{label:'Paid',render:r=>`<span class="text-green">${Fmt.currency(r.amount_paid)}</span>`},{label:'Balance',render:r=>`<span class="text-red">${Fmt.currency(r.balance_due)}</span>`},{label:'Status',render:r=>getBadge(r.status)},{label:'Date',render:r=>Fmt.date(r.created_at)}],res?.data,'No bills found');
+  buildTable('bills-table',[
+    {label:'Bill No.',key:'bill_number'},
+    {label:'Amount',render:r=>Fmt.currency(r.net_amount)},
+    {label:'Paid',render:r=>`<span class="text-green">${Fmt.currency(r.amount_paid)}</span>`},
+    {label:'Balance',render:r=>`<span class="text-red">${Fmt.currency(r.balance_due)}</span>`},
+    {label:'Status',render:r=>getBadge(r.status)},
+    {label:'Date',render:r=>Fmt.date(r.created_at)},
+    {label:'Action',render:r=>{
+      if (r.balance_due > 0) {
+        return `<button class="btn btn-sm btn-success" onclick="openPaymentModal('${r._id}','${r.bill_number}',${r.net_amount},${r.balance_due})"><i class="fas fa-credit-card"></i> Pay</button>`;
+      } else {
+        return '<span class="badge badge-green">✓ Paid</span>';
+      }
+    }}
+  ],res?.data,'No bills found');
+}
+
+function openPaymentModal(billId, billNo, billAmount, balance) {
+  window.currentBillId = billId;
+  document.getElementById('pay-bill-no').value = billNo || '';
+  document.getElementById('pay-bill-amount').value = typeof billAmount === 'string' ? billAmount : Fmt.currency(billAmount);
+  document.getElementById('pay-bill-balance').value = typeof balance === 'string' ? balance : Fmt.currency(balance);
+  document.getElementById('pay-amount').value = '';
+  document.getElementById('pay-amount').placeholder = `Max: ${typeof balance === 'string' ? balance : Fmt.currency(balance)}`;
+  document.getElementById('pay-method').value = '';
+  document.getElementById('pay-txn-id').value = '';
+  document.getElementById('pay-notes').value = '';
+  Modal.open('payment-modal');
+}
+
+async function processPayment() {
+  if (!window.currentBillId) { 
+    Toast.error('Bill ID missing'); 
+    return; 
+  }
+  
+  const btn = event?.target;
+  if (btn) btn.disabled = true;
+  
+  const amount = (document.getElementById('pay-amount').value || '').trim();
+  const method = (document.getElementById('pay-method').value || '').trim();
+  const txnId = (document.getElementById('pay-txn-id').value || '').trim();
+  const notes = (document.getElementById('pay-notes').value || '').trim();
+  
+  // Validation
+  if (!amount) {
+    Toast.error('⚠️ Please enter payment amount');
+    if (btn) btn.disabled = false;
+    return;
+  }
+  
+  if (!method) {
+    Toast.error('⚠️ Please select a payment method');
+    if (btn) btn.disabled = false;
+    return;
+  }
+  
+  const numAmount = parseFloat(amount);
+  if (isNaN(numAmount) || numAmount <= 0) {
+    Toast.error('⚠️ Amount must be a positive number');
+    if (btn) btn.disabled = false;
+    return;
+  }
+  
+  // Build payload - only include optional fields if they have values
+  const payload = {
+    amount: numAmount,
+    payment_method: method
+  };
+  
+  if (txnId) payload.transaction_id = txnId;
+  if (notes) payload.notes = notes;
+  
+  try {
+    const res = await API.post(`/billing/${window.currentBillId}/payment`, payload);
+    if (btn) btn.disabled = false;
+    
+    if (res?.success) {
+      Toast.success(`✅ Payment of ₹${numAmount.toFixed(2)} recorded! Ref: ${res.paymentNumber}`);
+      Modal.close('payment-modal');
+      window.currentBillId = null;
+      setTimeout(() => loadBills(), 800);
+    } else {
+      const errorMsg = res?.errors?.[0]?.msg || res?.message || 'Payment processing failed';
+      Toast.error(`❌ ${errorMsg}`);
+    }
+  } catch (err) {
+    if (btn) btn.disabled = false;
+    Toast.error('❌ Network error - please check your connection');
+    console.error('Payment error:', err);
+  }
 }
 
 async function loadProfile() {
-  const meRes = await API.get('/auth/me');
-  const patRes = await API.get('/patients?limit=100');
-  const myPat = (patRes?.data||[]).find(p=>p.email === meRes?.user?.email);
-  myPatientId = myPat?.id || myPat?._id || null;
+  const user = Auth.getUser();
+  if (!user?.patient_id) { Toast.error('Patient profile not found'); return; }
+  
+  const res = await API.get(`/patients/${user.patient_id}`);
+  if (!res?.data) { Toast.error('Could not load patient profile'); return; }
+  
+  const myPat = res.data;
+  myPatientId = myPat._id || myPat.id || null;
   
   if (myPat) {
     document.getElementById('prof-name').value = myPat.name || '';
