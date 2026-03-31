@@ -240,7 +240,7 @@ async function submitStaff() {
 // ── Departments ───────────────────────────────────────────────────
 let departmentsCache = [];
 async function loadDepartments() {
-  const res = await API.get('/doctors/departments');
+  const res = await API.get('/departments');
   if (!res?.success) return;
   departmentsCache = res.data;
   // Populate all dept selects
@@ -251,7 +251,7 @@ async function loadDepartments() {
 }
 
 async function loadDepartmentPage() {
-  const res = await API.get('/doctors/departments');
+  const res = await API.get('/departments');
   document.getElementById('dept-grid').innerHTML = (res?.data||[]).map(d=>`
     <div class="card card-body">
       <div style="display:flex;align-items:center;gap:16px;margin-bottom:12px;">
@@ -259,7 +259,8 @@ async function loadDepartmentPage() {
         <div><h3 style="font-weight:700;">${d.name}</h3><span class="badge badge-gray">${d.code}</span></div>
       </div>
       <p class="text-sm text-muted">${d.description||'No description'}</p>
-    </div>`).join('');
+      <div style="margin-top:8px;font-size:13px;color:var(--text-muted);">${d.doctor_count||0} doctor(s)</div>
+    </div>`).join('')||'<div class="empty-state"><i class="fas fa-building"></i><p>No departments found</p></div>';
 }
 
 // ── Analytics ─────────────────────────────────────────────────────
@@ -271,4 +272,100 @@ async function loadReports() {
   if (dept?.success) {
     new Chart(document.getElementById('deptChart2'), { type:'bar', indexAxis:'y', data:{ labels:dept.data.map(r=>r.department||'Unknown'), datasets:[{ data:dept.data.map(r=>r.count), backgroundColor:'rgba(124,58,237,0.6)', borderRadius:6 }] }, options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ x:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#64748b'}}, y:{grid:{display:false},ticks:{color:'#94a3b8'}} } } });
   }
+}
+
+// ── Billing Submit ────────────────────────────────────────────────
+async function submitBill() {
+  const patientId = document.getElementById('bill-patient-id')?.value;
+  const items = [];
+  document.querySelectorAll('#bill-items-body tr').forEach(row => {
+    const name  = row.querySelector('.bill-item-name')?.value;
+    const type  = row.querySelector('.bill-item-type')?.value;
+    const qty   = parseFloat(row.querySelector('.bill-item-qty')?.value)||1;
+    const price = parseFloat(row.querySelector('.bill-item-price')?.value)||0;
+    if (name && price) items.push({ item_name:name, item_type:type||'other', quantity:qty, unit_price:price });
+  });
+  if (!patientId) { Toast.error('Select a patient'); return; }
+  if (!items.length) { Toast.error('Add at least one item'); return; }
+  const data = {
+    patient_id: patientId,
+    items,
+    discount_percent: parseFloat(document.getElementById('bill-discount')?.value)||0,
+    tax_percent: parseFloat(document.getElementById('bill-tax')?.value)||18,
+    insurance_amount: parseFloat(document.getElementById('bill-insurance')?.value)||0,
+    notes: document.getElementById('bill-notes')?.value||null,
+  };
+  const res = await API.post('/billing', data);
+  if (res?.success) { Toast.success('Bill created: '+res.billNumber); Modal.close('add-bill-modal'); loadBilling(); }
+  else Toast.error(res?.message||'Failed to create bill');
+}
+
+function addBillItem() {
+  const tbody = document.getElementById('bill-items-body');
+  if (!tbody) return;
+  const row = document.createElement('tr');
+  row.innerHTML = `
+    <td><input type="text" class="form-control bill-item-name" placeholder="Item name" required></td>
+    <td><select class="form-control bill-item-type"><option value="consultation">Consultation</option><option value="procedure">Procedure</option><option value="medicine">Medicine</option><option value="lab_test">Lab Test</option><option value="bed">Bed</option><option value="other">Other</option></select></td>
+    <td><input type="number" class="form-control bill-item-qty" value="1" min="1" style="width:70px;"></td>
+    <td><input type="number" class="form-control bill-item-price" placeholder="0" min="0"></td>
+    <td><button type="button" onclick="this.closest('tr').remove()" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:16px;"><i class="fas fa-trash"></i></button></td>`;
+  tbody.appendChild(row);
+}
+
+// ── Medicine Submit ───────────────────────────────────────────────
+async function submitMedicine() {
+  const data = {
+    name: document.getElementById('med-name')?.value,
+    generic_name: document.getElementById('med-generic')?.value,
+    category: document.getElementById('med-category')?.value||'tablet',
+    manufacturer: document.getElementById('med-mfg')?.value,
+    unit: document.getElementById('med-unit')?.value||'strip',
+    description: document.getElementById('med-desc')?.value,
+    requires_prescription: document.getElementById('med-rx')?.checked||false,
+  };
+  if (!data.name) { Toast.error('Medicine name required'); return; }
+  const res = await API.post('/pharmacy/medicines', data);
+  if (res?.success) { Toast.success('Medicine added!'); Modal.close('add-medicine-modal'); document.getElementById('med-form')?.reset(); loadPharmacy(); }
+  else Toast.error(res?.message||'Failed');
+}
+
+// ── Bed Allocation Submit ─────────────────────────────────────────
+async function submitBedAllocation() {
+  const data = {
+    bed_id: document.getElementById('al-bed-id')?.value,
+    patient_id: document.getElementById('al-patient-id')?.value,
+    expected_discharge_date: document.getElementById('al-discharge')?.value||null,
+    diagnosis_at_admission: document.getElementById('al-diagnosis')?.value||null,
+  };
+  if (!data.bed_id)     { Toast.error('Select a bed'); return; }
+  if (!data.patient_id) { Toast.error('Select a patient'); return; }
+  const res = await API.post('/beds/allocate', data);
+  if (res?.success) { Toast.success('Bed allocated successfully!'); Modal.close('allocate-bed-modal'); loadBeds(); }
+  else Toast.error(res?.message||'Failed to allocate bed');
+}
+
+function loadAvailBedsForModal() {
+  const ward = document.getElementById('al-ward-select')?.value;
+  const bedSel = document.getElementById('al-bed-id');
+  if (!bedSel) return;
+  bedSel.innerHTML = '<option value="">Loading…</option>';
+  API.get(`/beds?ward_type=${ward}&status=available`).then(res => {
+    if (!res?.success || !res.data.length) { bedSel.innerHTML='<option value="">No available beds</option>'; return; }
+    bedSel.innerHTML = '<option value="">Select Bed</option>' + res.data.filter(b=>b.status==='available').map(b=>`<option value="${b.id||b._id}">${b.bed_number} — ${b.ward_name||b.ward_type} (Floor ${b.floor})</option>`).join('');
+  });
+}
+
+// ── Patient search helper ─────────────────────────────────────────
+async function searchPatientForModal(query, resultsDivId, hiddenInputId) {
+  if (!query || query.length < 2) { document.getElementById(resultsDivId).innerHTML=''; return; }
+  const res = await API.get(`/patients?search=${encodeURIComponent(query)}&limit=5`);
+  const div = document.getElementById(resultsDivId);
+  if (!res?.success || !res.data.length) { div.innerHTML='<div style="padding:8px;color:var(--text-muted);font-size:13px;">No patients found</div>'; return; }
+  div.innerHTML = res.data.map(p=>`<div style="padding:8px 12px;cursor:pointer;border-radius:6px;font-size:13px;" class="search-result-item" onmousedown="selectPatientForModal('${p.id||p._id}','${p.name}','${p.patient_id}','${resultsDivId}','${hiddenInputId}')">${p.name} <span style="color:var(--text-muted)">(${p.patient_id})</span></div>`).join('');
+}
+function selectPatientForModal(id, name, code, resultsDivId, hiddenInputId) {
+  document.getElementById(hiddenInputId).value = id;
+  const wrap = document.getElementById(resultsDivId);
+  if (wrap) { const inp = wrap.previousElementSibling; if(inp) inp.value = name+' ('+code+')'; wrap.innerHTML=''; }
 }

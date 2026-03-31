@@ -7,8 +7,10 @@ const role   = require('../middleware/roleCheck');
 router.get('/availability',          auth,                                     ctrl.getAvailability);
 router.get('/admissions',            auth, role('admin','receptionist','doctor'), ctrl.getAdmissions);
 router.get('/',                      auth,                                     ctrl.getAll);
+router.post('/',                     auth, role('admin'),                      ctrl.create);
 router.post('/allocate',             auth, role('admin','receptionist'),       ctrl.allocate);
 router.put('/discharge/:allocation_id', auth, role('admin','receptionist','doctor'), ctrl.discharge);
 router.put('/:id/status',            auth, role('admin','receptionist'),       ctrl.updateBedStatus);
+router.delete('/:id',                auth, role('admin'),                      ctrl.remove);
 
 module.exports = router;

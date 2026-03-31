@@ -1,6 +1,6 @@
 # 🏥 MediCore HMS — Hospital Management System
 
-A complete, production-ready **Hospital Management System** built with **Node.js + Express** backend, **MySQL** database, and **HTML/CSS/JS** frontend featuring a premium dark glassmorphism design.
+A complete, production-ready **Hospital Management System** built with **Node.js + Express** backend, **MongoDB** database, and **HTML/CSS/JS** frontend featuring a premium dark glassmorphism design.
 
 > *"Our Hospital Management System is a complete digital solution that replaces manual work with automation. It helps your hospital manage patients, billing, appointments, and staff efficiently from one platform."*
 
@@ -120,7 +120,7 @@ A complete, production-ready **Hospital Management System** built with **Node.js
 | Secure Login | JWT tokens with 24-hour expiry |
 | Password Encryption | bcrypt with 10 salt rounds |
 | Role-Based Access | Middleware blocks unauthorized API access per endpoint |
-| SQL Injection Prevention | Parameterized queries via mysql2 prepared statements |
+| SQL Injection Prevention | Parameterized queries via Mongoose model validation & sanitization |
 | CORS Policy | Configurable cross-origin resource sharing |
 | Input Validation | Server-side validation on all endpoints |
 
@@ -144,7 +144,7 @@ A complete, production-ready **Hospital Management System** built with **Node.js
 |-----------|---------|
 | Node.js | JavaScript runtime |
 | Express.js | REST API framework |
-| mysql2/promise | MySQL connection pool |
+| mongoose | MongoDB via Mongoose |
 | jsonwebtoken (JWT) | Authentication tokens |
 | bcryptjs | Password hashing |
 | morgan | HTTP request logging |
@@ -156,7 +156,7 @@ A complete, production-ready **Hospital Management System** built with **Node.js
 ### Database
 | Technology | Purpose |
 |-----------|---------|
-| MySQL 8.0+ | Relational database |
+| MongoDB 6.0+ | Relational database |
 | 19 Tables | Full data model with foreign keys & indexes |
 
 ---
@@ -177,7 +177,7 @@ Hospital_Management/
 │   ├── server.js                   # Express entry point (port 3000)
 │   │
 │   ├── 📂 config/
-│   │   └── db.js                   # MySQL2 connection pool with helpers
+│   │   └── db.js                   # Mongoose connection
 │   │
 │   ├── 📂 middleware/
 │   │   ├── auth.js                 # JWT verification middleware
@@ -243,7 +243,7 @@ Hospital_Management/
 
 ### Prerequisites
 - **Node.js** v16+ installed
-- **MySQL** 8.0+ installed and running
+- **MongoDB** 6.0+ installed and running
 - **npm** (comes with Node.js)
 
 ### Step 1: Clone / Navigate to project
@@ -253,7 +253,7 @@ cd /path/to/Hospital_Management
 
 ### Step 2: Create Database & Import Schema
 ```bash
-mysql -u root -p < database/hms_schema.sql
+# Import seed data via: cd server && npm run seed
 ```
 
 This creates the `hms_db` database with all 19 tables and seeds:
@@ -263,7 +263,7 @@ This creates the `hms_db` database with all 19 tables and seeds:
 
 ### Step 3: Configure Environment
 ```bash
-# Edit the .env file with your MySQL credentials
+# Edit the .env file with your MongoDB credentials
 nano server/.env
 ```
 
@@ -272,7 +272,7 @@ Update these values:
 DB_HOST=localhost
 DB_PORT=3306
 DB_USER=root
-DB_PASS=your_mysql_password    # ← Set this
+# MongoDB URI (see .env.example)
 DB_NAME=hms_db
 ```
 
@@ -544,5 +544,5 @@ For support, customization, or deployment assistance, contact the development te
 
 <p align="center">
   <strong>Built with ❤️ for better healthcare</strong><br>
-  Node.js · Express · MySQL · HTML/CSS/JS · Chart.js
+  Node.js · Express · MongoDB · Mongoose · HTML/CSS/JS · Chart.js
 </p>

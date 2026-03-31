@@ -2,7 +2,7 @@
 
 ## Project Summary
 
-A **full-stack Hospital Management System** (HMS) built with **Node.js + Express** backend, **MySQL** database, and **HTML/CSS/JS** frontend with a premium dark glassmorphism design.
+A **full-stack Hospital Management System** (HMS) built with **Node.js + Express** backend, **MongoDB** database (via Mongoose), and **HTML/CSS/JS** frontend with a premium dark glassmorphism design.
 
 ---
 
@@ -16,10 +16,10 @@ Hospital_Management/
 │
 ├── server/                     ← NODE.JS BACKEND
 │   ├── .env / .env.example     ← Environment configuration
-│   ├── package.json            ← Dependencies (express, mysql2, bcryptjs, jsonwebtoken)
+│   ├── package.json            ← Dependencies (express, mongoose, bcryptjs, jsonwebtoken)
 │   ├── server.js               ← Express app entry point (port 5000)
 │   ├── config/
-│   │   └── db.js               ← MySQL2 connection pool
+│   │   └── db.js               ← Mongoose connection to MongoDB
 │   ├── middleware/
 │   │   ├── auth.js             ← JWT verification middleware
 │   │   └── roleCheck.js        ← Role-based access control factory
@@ -67,7 +67,7 @@ Hospital_Management/
 | Layer | Technology | Usage |
 |-------|-----------|-------|
 | **Backend** | Node.js + Express.js | REST API server |
-| **Database** | MySQL + mysql2/promise | Connection pool, prepared statements |
+| **Database** | MongoDB + Mongoose | ODM, schema validation, queries |
 | **Auth** | JWT + bcryptjs | Secure login, role-based access |
 | **Frontend** | HTML5 + CSS3 + Vanilla JS (ES6+) | All pages |
 | **Charts** | Chart.js 4.x | Revenue, department, growth charts |
@@ -111,16 +111,16 @@ Hospital_Management/
 
 ## 🚀 Setup & Run Instructions
 
-### 1. MySQL Setup
+### 1. MongoDB Setup
 ```bash
-# Create database & import schema
-mysql -u root -p < database/hms_schema.sql
+# Ensure MongoDB is running (default: mongodb://localhost:27017/hms_db)
+mongod --dbpath /your/data/path
 ```
 
 ### 2. Configure Environment
 ```bash
-# Edit server/.env — set your MySQL password
-DB_PASS=your_mysql_password
+# Edit server/.env — set your MongoDB URI
+MONGO_URI=mongodb://localhost:27017/hms_db
 ```
 
 ### 3. Seed Demo Data

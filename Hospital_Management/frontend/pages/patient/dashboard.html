@@ -149,7 +149,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const pRes = await API.get('/patients?limit=1');
   // Load doctors for booking
   const docRes = await API.get('/doctors');
-  const depts  = await API.get('/doctors/departments');
+  const depts  = await API.get('/departments');
   if (docRes?.success) {
     const sel = document.getElementById('ba-doctor');
     sel.innerHTML = '<option value="">Select Doctor</option>' + docRes.data.map(d=>`<option value="${d.id}">${d.name} — ${d.specialization||'General'} (₹${d.consultation_fee})</option>`).join('');
@@ -234,7 +234,7 @@ async function loadDoctors() {
       <div style="font-size:13px;color:var(--text-muted);margin-bottom:8px;"><i class="fas fa-building" style="width:16px;"></i> ${d.department_name||'—'}</div>
       <div style="font-size:13px;color:var(--text-muted);margin-bottom:8px;"><i class="fas fa-graduation-cap" style="width:16px;"></i> ${d.qualification||'—'}</div>
       <div style="font-size:13px;color:var(--text-muted);margin-bottom:16px;"><i class="fas fa-clock" style="width:16px;"></i> ${d.experience_years} years exp · ₹${d.consultation_fee}</div>
-      <button class="btn btn-primary btn-full btn-sm" onclick="document.getElementById('ba-doctor').value='${d.id}';Modal.open('book-appt-modal')"><i class="fas fa-calendar-plus"></i> Book Appointment</button>
+      <button class="btn btn-primary btn-full btn-sm" data-doc-id="${d.id||''}" onclick="selectDoctorAndBook(this)"><i class="fas fa-calendar-plus"></i> Book Appointment</button>
     </div>`).join('');
 }
 
@@ -243,6 +243,12 @@ async function loadRecords() {
   buildTable('records-table',[{label:'Doctor',key:'doctor_name'},{label:'Date',render:r=>Fmt.date(r.appointment_date)},{label:'Reason',key:'reason'},{label:'Status',render:r=>getBadge(r.status)}],res?.data,'No medical records found');
 }
 async function loadPrescriptions() { buildTable('rx-table',[{label:'Info',render:r=>'No prescriptions API yet'}],[],'No prescriptions found'); }
+function selectDoctorAndBook(btn) {
+  const docId = btn.getAttribute('data-doc-id');
+  const sel = document.getElementById('ba-doctor');
+  if (sel && docId) sel.value = docId;
+  Modal.open('book-appt-modal');
+}
 async function loadBills() {
   const res = await API.get('/billing?limit=50');
   buildTable('bills-table',[{label:'Bill No.',key:'bill_number'},{label:'Amount',render:r=>Fmt.currency(r.net_amount)},{label:'Paid',render:r=>`<span class="text-green">${Fmt.currency(r.amount_paid)}</span>`},{label:'Balance',render:r=>`<span class="text-red">${Fmt.currency(r.balance_due)}</span>`},{label:'Status',render:r=>getBadge(r.status)},{label:'Date',render:r=>Fmt.date(r.created_at)}],res?.data,'No bills found');

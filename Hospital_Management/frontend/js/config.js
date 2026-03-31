@@ -1,5 +1,5 @@
 // frontend/js/config.js — API configuration & shared helpers
-const API_BASE = 'http://localhost:3000/api';
+const API_BASE = 'http://localhost:5000/api';
 
 // ── Token helpers ─────────────────────────────────────────────────
 const Auth = {

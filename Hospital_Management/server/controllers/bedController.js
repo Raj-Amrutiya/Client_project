@@ -87,6 +87,31 @@ exports.updateBedStatus = async (req, res) => {
   } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 };
 
+// POST /api/beds  — create a new bed
+exports.create = async (req, res) => {
+  try {
+    const { bed_number, ward_type, floor, ward_name, daily_rate } = req.body;
+    if (!bed_number || !ward_type) return res.status(400).json({ success: false, message: 'bed_number and ward_type required' });
+
+    const exists = await Bed.findOne({ bed_number });
+    if (exists) return res.status(409).json({ success: false, message: 'Bed number already exists' });
+
+    const bed = await Bed.create({ bed_number, ward_type, floor: floor || 1, ward_name: ward_name || null, daily_rate: daily_rate || 0 });
+    res.status(201).json({ success: true, message: 'Bed created', id: bed._id });
+  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+};
+
+// DELETE /api/beds/:id — remove a bed (only if available)
+exports.remove = async (req, res) => {
+  try {
+    const bed = await Bed.findById(req.params.id);
+    if (!bed) return res.status(404).json({ success: false, message: 'Bed not found' });
+    if (bed.status === 'occupied') return res.status(409).json({ success: false, message: 'Cannot delete an occupied bed' });
+    await Bed.findByIdAndDelete(req.params.id);
+    res.json({ success: true, message: 'Bed removed' });
+  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+};
+
 // GET /api/beds/admissions
 exports.getAdmissions = async (req, res) => {
   try {
