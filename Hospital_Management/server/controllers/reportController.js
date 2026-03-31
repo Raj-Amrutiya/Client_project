@@ -1,26 +1,67 @@
 // server/controllers/reportController.js
-const { query } = require('../config/db');
+const Patient      = require('../models/Patient');
+const Doctor       = require('../models/Doctor');
+const User         = require('../models/User');
+const Appointment  = require('../models/Appointment');
+const Billing      = require('../models/Billing');
+const Bed          = require('../models/Bed');
+const LabTest      = require('../models/LabTest');
+const MedicineStock = require('../models/MedicineStock');
 
 // GET /api/reports/dashboard  — Main admin dashboard stats
 exports.getDashboardStats = async (req, res) => {
   try {
-    const [[patients]]   = await query(`SELECT COUNT(*) AS total, SUM(MONTH(created_at)=MONTH(CURDATE()) AND YEAR(created_at)=YEAR(CURDATE())) AS this_month FROM patients`);
-    const [[doctors]]    = await query(`SELECT COUNT(*) AS total FROM doctors d JOIN users u ON u.id=d.user_id WHERE u.is_active=1`);
-    const [[appts]]      = await query(`SELECT COUNT(*) AS today FROM appointments WHERE appointment_date=CURDATE()`);
-    const [[revenue]]    = await query(`SELECT COALESCE(SUM(amount_paid),0) AS today FROM billing WHERE DATE(updated_at)=CURDATE()`);
-    const [[monthRev]]   = await query(`SELECT COALESCE(SUM(amount_paid),0) AS month FROM billing WHERE MONTH(created_at)=MONTH(CURDATE()) AND YEAR(created_at)=YEAR(CURDATE())`);
-    const [[beds]]       = await query(`SELECT COUNT(*) AS total, SUM(status='available') AS available, SUM(status='occupied') AS occupied FROM beds`);
-    const [[labPending]] = await query(`SELECT COUNT(*) AS pending FROM lab_tests WHERE status NOT IN ('completed','cancelled')`);
-    const [[lowStock]]   = await query(`SELECT COUNT(*) AS count FROM medicine_stock WHERE quantity<=min_stock_alert`);
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const tomorrow = new Date(today.getTime() + 86400000);
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const monthEnd   = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+
+    // Patients
+    const totalPatients = await Patient.countDocuments();
+    const thisMonthPatients = await Patient.countDocuments({ created_at: { $gte: monthStart, $lt: monthEnd } });
+
+    // Doctors (active)
+    const activeDocUsers = await User.find({ role: 'doctor', is_active: true }).select('_id');
+    const totalDoctors = await Doctor.countDocuments({ user_id: { $in: activeDocUsers.map(u => u._id) } });
+
+    // Appointments today
+    const apptToday = await Appointment.countDocuments({ appointment_date: { $gte: today, $lt: tomorrow } });
+
+    // Revenue
+    const [todayRev] = await Billing.aggregate([
+      { $match: { updated_at: { $gte: today, $lt: tomorrow } } },
+      { $group: { _id: null, today: { $sum: '$amount_paid' } } },
+    ]) || [{}];
+    const [monthRev] = await Billing.aggregate([
+      { $match: { created_at: { $gte: monthStart, $lt: monthEnd } } },
+      { $group: { _id: null, month: { $sum: '$amount_paid' } } },
+    ]) || [{}];
+
+    // Beds
+    const bedStats = await Bed.aggregate([
+      { $group: {
+        _id: null,
+        total: { $sum: 1 },
+        available: { $sum: { $cond: [{ $eq: ['$status', 'available'] }, 1, 0] } },
+        occupied:  { $sum: { $cond: [{ $eq: ['$status', 'occupied'] }, 1, 0] } },
+      }},
+    ]);
+
+    // Lab pending
+    const labPending = await LabTest.countDocuments({ status: { $nin: ['completed', 'cancelled'] } });
+
+    // Low stock
+    const lowStock = await MedicineStock.countDocuments({ $expr: { $lte: ['$quantity', '$min_stock_alert'] } });
 
     res.json({ success: true, data: {
-      patients: { total: patients.total, this_month: patients.this_month },
-      doctors:  { total: doctors.total },
-      appointments: { today: appts.today },
-      revenue: { today: revenue.today, month: monthRev.month },
-      beds: { total: beds.total, available: beds.available, occupied: beds.occupied },
-      lab: { pending: labPending.pending },
-      pharmacy: { low_stock: lowStock.count }
+      patients:     { total: totalPatients, this_month: thisMonthPatients },
+      doctors:      { total: totalDoctors },
+      appointments: { today: apptToday },
+      revenue:      { today: todayRev?.today || 0, month: monthRev?.month || 0 },
+      beds:         { total: bedStats[0]?.total || 0, available: bedStats[0]?.available || 0, occupied: bedStats[0]?.occupied || 0 },
+      lab:          { pending: labPending },
+      pharmacy:     { low_stock: lowStock }
     }});
   } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 };
@@ -29,10 +70,18 @@ exports.getDashboardStats = async (req, res) => {
 exports.getRevenueChart = async (req, res) => {
   try {
     const days = parseInt(req.query.range) || 30;
-    const [rows] = await query(
-      `SELECT DATE(created_at) AS date, COALESCE(SUM(amount_paid),0) AS revenue, COUNT(*) AS bills
-       FROM billing WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL ? DAY)
-       GROUP BY DATE(created_at) ORDER BY date`, [days]);
+    const since = new Date(Date.now() - days * 86400000);
+
+    const rows = await Billing.aggregate([
+      { $match: { created_at: { $gte: since } } },
+      { $group: {
+        _id: { $dateToString: { format: '%Y-%m-%d', date: '$created_at' } },
+        revenue: { $sum: '$amount_paid' },
+        bills:   { $sum: 1 },
+      }},
+      { $project: { date: '$_id', revenue: 1, bills: 1, _id: 0 } },
+      { $sort: { date: 1 } },
+    ]);
     res.json({ success: true, data: rows });
   } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 };
@@ -40,12 +89,18 @@ exports.getRevenueChart = async (req, res) => {
 // GET /api/reports/appointments-by-department
 exports.getApptsByDept = async (req, res) => {
   try {
-    const [rows] = await query(
-      `SELECT dep.name AS department, COUNT(a.id) AS count
-       FROM appointments a JOIN doctors d ON d.id=a.doctor_id
-       LEFT JOIN departments dep ON dep.id=d.department_id
-       WHERE a.appointment_date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
-       GROUP BY dep.name ORDER BY count DESC`);
+    const since = new Date(Date.now() - 30 * 86400000);
+
+    const rows = await Appointment.aggregate([
+      { $match: { appointment_date: { $gte: since } } },
+      { $lookup: { from: 'doctors', localField: 'doctor_id', foreignField: '_id', as: 'doc' } },
+      { $unwind: '$doc' },
+      { $lookup: { from: 'departments', localField: 'doc.department_id', foreignField: '_id', as: 'dept' } },
+      { $unwind: { path: '$dept', preserveNullAndEmptyArrays: true } },
+      { $group: { _id: '$dept.name', count: { $sum: 1 } } },
+      { $project: { department: { $ifNull: ['$_id', 'Unassigned'] }, count: 1, _id: 0 } },
+      { $sort: { count: -1 } },
+    ]);
     res.json({ success: true, data: rows });
   } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 };
@@ -54,10 +109,18 @@ exports.getApptsByDept = async (req, res) => {
 exports.getPatientGrowth = async (req, res) => {
   try {
     const months = parseInt(req.query.range) || 12;
-    const [rows] = await query(
-      `SELECT DATE_FORMAT(created_at,'%Y-%m') AS month, COUNT(*) AS new_patients
-       FROM patients WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL ? MONTH)
-       GROUP BY month ORDER BY month`, [months]);
+    const since = new Date();
+    since.setMonth(since.getMonth() - months);
+
+    const rows = await Patient.aggregate([
+      { $match: { created_at: { $gte: since } } },
+      { $group: {
+        _id: { $dateToString: { format: '%Y-%m', date: '$created_at' } },
+        new_patients: { $sum: 1 },
+      }},
+      { $project: { month: '$_id', new_patients: 1, _id: 0 } },
+      { $sort: { month: 1 } },
+    ]);
     res.json({ success: true, data: rows });
   } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 };
@@ -65,15 +128,29 @@ exports.getPatientGrowth = async (req, res) => {
 // GET /api/reports/doctor-performance
 exports.getDoctorPerformance = async (req, res) => {
   try {
-    const [rows] = await query(
-      `SELECT u.name, d.specialization, dep.name AS department,
-              COUNT(a.id) AS total_appointments,
-              SUM(a.status='completed') AS completed,
-              SUM(a.status='cancelled') AS cancelled
-       FROM doctors d JOIN users u ON u.id=d.user_id
-       LEFT JOIN departments dep ON dep.id=d.department_id
-       LEFT JOIN appointments a ON a.doctor_id=d.id AND a.appointment_date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
-       WHERE u.is_active=1 GROUP BY d.id ORDER BY completed DESC LIMIT 10`);
+    const since = new Date(Date.now() - 30 * 86400000);
+
+    const rows = await Appointment.aggregate([
+      { $match: { appointment_date: { $gte: since } } },
+      { $group: {
+        _id: '$doctor_id',
+        total_appointments: { $sum: 1 },
+        completed: { $sum: { $cond: [{ $eq: ['$status', 'completed'] }, 1, 0] } },
+        cancelled: { $sum: { $cond: [{ $eq: ['$status', 'cancelled'] }, 1, 0] } },
+      }},
+      { $lookup: { from: 'doctors', localField: '_id', foreignField: '_id', as: 'doc' } },
+      { $unwind: '$doc' },
+      { $lookup: { from: 'users', localField: 'doc.user_id', foreignField: '_id', as: 'user' } },
+      { $unwind: '$user' },
+      { $lookup: { from: 'departments', localField: 'doc.department_id', foreignField: '_id', as: 'dept' } },
+      { $unwind: { path: '$dept', preserveNullAndEmptyArrays: true } },
+      { $project: {
+        name: '$user.name', specialization: '$doc.specialization',
+        department: '$dept.name', total_appointments: 1, completed: 1, cancelled: 1, _id: 0,
+      }},
+      { $sort: { completed: -1 } },
+      { $limit: 10 },
+    ]);
     res.json({ success: true, data: rows });
   } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 };
@@ -81,18 +158,30 @@ exports.getDoctorPerformance = async (req, res) => {
 // GET /api/reports/recent-activity
 exports.getRecentActivity = async (req, res) => {
   try {
-    const [appts] = await query(
-      `SELECT 'appointment' AS type, a.appointment_number AS ref, up.name AS name,
-              a.created_at AS time, CONCAT('Appointment with ',ud.name) AS detail
-       FROM appointments a JOIN patients p ON p.id=a.patient_id JOIN users up ON up.id=p.user_id
-       JOIN doctors d ON d.id=a.doctor_id JOIN users ud ON ud.id=d.user_id
-       ORDER BY a.created_at DESC LIMIT 5`);
-    const [bills] = await query(
-      `SELECT 'billing' AS type, b.bill_number AS ref, u.name AS name,
-              b.created_at AS time, CONCAT('Bill ₹',b.net_amount) AS detail
-       FROM billing b JOIN patients p ON p.id=b.patient_id JOIN users u ON u.id=p.user_id
-       ORDER BY b.created_at DESC LIMIT 5`);
-    const combined = [...appts, ...bills].sort((a,b)=>new Date(b.time)-new Date(a.time)).slice(0,10);
-    res.json({ success: true, data: combined });
+    const appts = await Appointment.find()
+      .populate({ path: 'patient_id', populate: { path: 'user_id', select: 'name' } })
+      .populate({ path: 'doctor_id', populate: { path: 'user_id', select: 'name' } })
+      .sort({ created_at: -1 }).limit(5);
+
+    const bills = await Billing.find()
+      .populate({ path: 'patient_id', populate: { path: 'user_id', select: 'name' } })
+      .sort({ created_at: -1 }).limit(5);
+
+    const activity = [
+      ...appts.map(a => ({
+        type: 'appointment', ref: a.appointment_number,
+        name: a.patient_id?.user_id?.name || '',
+        time: a.created_at,
+        detail: `Appointment with ${a.doctor_id?.user_id?.name || ''}`
+      })),
+      ...bills.map(b => ({
+        type: 'billing', ref: b.bill_number,
+        name: b.patient_id?.user_id?.name || '',
+        time: b.created_at,
+        detail: `Bill ₹${b.net_amount}`
+      })),
+    ].sort((a, b) => new Date(b.time) - new Date(a.time)).slice(0, 10);
+
+    res.json({ success: true, data: activity });
   } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 };

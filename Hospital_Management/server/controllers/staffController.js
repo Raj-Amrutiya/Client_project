@@ -1,13 +1,27 @@
 // server/controllers/staffController.js
-const { query, single } = require('../config/db');
-const bcrypt = require('bcryptjs');
+const Staff      = require('../models/Staff');
+const User       = require('../models/User');
+const Department = require('../models/Department');
+const bcrypt     = require('bcryptjs');
 
 exports.getAll = async (req, res) => {
   try {
-    const [rows] = await query(
-      `SELECT s.*, u.name, u.email, u.phone, u.role, u.is_active, dep.name AS department_name
-       FROM staff s JOIN users u ON u.id=s.user_id LEFT JOIN departments dep ON dep.id=s.department_id
-       WHERE u.is_active=1 ORDER BY u.name`);
+    const staffList = await Staff.find()
+      .populate({ path: 'user_id', match: { is_active: true }, select: 'name email phone role is_active' })
+      .populate('department_id', 'name');
+
+    // Filter out staff whose user is inactive
+    const rows = staffList.filter(s => s.user_id).map(s => {
+      const obj = s.toObject();
+      obj.name = s.user_id?.name || '';
+      obj.email = s.user_id?.email || '';
+      obj.phone = s.user_id?.phone || '';
+      obj.role = s.user_id?.role || '';
+      obj.is_active = s.user_id?.is_active;
+      obj.department_name = s.department_id?.name || '';
+      return obj;
+    });
+    rows.sort((a, b) => a.name.localeCompare(b.name));
     res.json({ success: true, data: rows });
   } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 };
@@ -15,18 +29,23 @@ exports.getAll = async (req, res) => {
 exports.create = async (req, res) => {
   try {
     const { name, email, phone, password, role, department_id, designation, salary, join_date } = req.body;
-    const roles = ['receptionist','lab_technician','pharmacist'];
+    const roles = ['receptionist', 'lab_technician', 'pharmacist'];
     if (!roles.includes(role)) return res.status(400).json({ success: false, message: `Role must be one of: ${roles.join(', ')}` });
 
-    const exists = await single('SELECT id FROM users WHERE email=?', [email]);
+    const exists = await User.findOne({ email });
     if (exists) return res.status(409).json({ success: false, message: 'Email already exists' });
 
     const hashed = await bcrypt.hash(password || 'Staff@123', 10);
-    const [uRes] = await query('INSERT INTO users (name,email,password,role,phone) VALUES (?,?,?,?,?)', [name,email,hashed,role,phone]);
-    const [[{ cnt }]] = await query('SELECT COUNT(*)+1 AS cnt FROM staff');
-    const empId = 'EMP' + String(cnt).padStart(4,'0');
-    await query('INSERT INTO staff (user_id,department_id,employee_id,designation,salary,join_date) VALUES (?,?,?,?,?,?)',
-      [uRes.insertId, department_id||null, empId, designation, salary||null, join_date||null]);
+    const newUser = await User.create({ name, email, password: hashed, role, phone });
+
+    const cnt = await Staff.countDocuments();
+    const empId = 'EMP' + String(cnt + 1).padStart(4, '0');
+
+    await Staff.create({
+      user_id: newUser._id, department_id: department_id || null,
+      employee_id: empId, designation,
+      salary: salary || null, join_date: join_date || null
+    });
 
     res.status(201).json({ success: true, message: 'Staff member added', employeeId: empId });
   } catch (err) { res.status(500).json({ success: false, message: err.message }); }
@@ -35,19 +54,27 @@ exports.create = async (req, res) => {
 exports.update = async (req, res) => {
   try {
     const { name, phone, department_id, designation, salary, join_date, is_active } = req.body;
-    const staff = await single('SELECT user_id FROM staff WHERE id=?', [req.params.id]);
+    const staff = await Staff.findById(req.params.id);
     if (!staff) return res.status(404).json({ success: false, message: 'Staff not found' });
-    if (name||phone||is_active!==undefined) await query('UPDATE users SET name=COALESCE(?,name), phone=COALESCE(?,phone), is_active=COALESCE(?,is_active) WHERE id=?', [name||null,phone||null,is_active!=null?is_active:null,staff.user_id]);
-    await query('UPDATE staff SET department_id=?,designation=?,salary=?,join_date=? WHERE id=?', [department_id,designation,salary,join_date,req.params.id]);
+
+    if (name || phone || is_active !== undefined) {
+      const userUpdate = {};
+      if (name)  userUpdate.name = name;
+      if (phone) userUpdate.phone = phone;
+      if (is_active !== undefined) userUpdate.is_active = is_active;
+      await User.findByIdAndUpdate(staff.user_id, userUpdate);
+    }
+
+    await Staff.findByIdAndUpdate(req.params.id, { department_id, designation, salary, join_date });
     res.json({ success: true, message: 'Staff updated' });
   } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 };
 
 exports.remove = async (req, res) => {
   try {
-    const staff = await single('SELECT user_id FROM staff WHERE id=?', [req.params.id]);
+    const staff = await Staff.findById(req.params.id);
     if (!staff) return res.status(404).json({ success: false, message: 'Not found' });
-    await query('UPDATE users SET is_active=0 WHERE id=?', [staff.user_id]);
+    await User.findByIdAndUpdate(staff.user_id, { is_active: false });
     res.json({ success: true, message: 'Staff deactivated' });
   } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 };

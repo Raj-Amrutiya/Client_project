@@ -22,6 +22,7 @@
         <a class="nav-item" data-page="prescriptions" href="#" onclick="showPage('prescriptions')"><i class="fas fa-prescription"></i> Prescriptions</a>
         <a class="nav-item" data-page="bills" href="#" onclick="showPage('bills')"><i class="fas fa-file-invoice-dollar"></i> Bills & Payments</a>
         <a class="nav-item" data-page="doctors" href="#" onclick="showPage('doctors')"><i class="fas fa-user-doctor"></i> Find Doctors</a>
+        <a class="nav-item" data-page="profile" href="#" onclick="showPage('profile')"><i class="fas fa-user"></i> My Profile</a>
       </div>
     </nav>
     <div class="sidebar-footer">
@@ -87,6 +88,29 @@
         </div>
         <div id="doctors-grid" class="grid-3"></div>
       </div>
+
+      <!-- Profile -->
+      <div id="page-profile" class="hidden">
+        <div class="page-header"><div><div class="page-title">My Profile</div></div>
+          <button class="btn btn-primary" onclick="saveProfile()"><i class="fas fa-save"></i> Save Changes</button>
+        </div>
+        <div class="card card-body">
+          <h3 style="margin-bottom:16px;">Personal Information</h3>
+          <div class="grid-2">
+            <div class="form-group"><label class="form-label">Full Name</label><input type="text" id="prof-name" class="form-control"></div>
+            <div class="form-group"><label class="form-label">Phone Number</label><input type="text" id="prof-phone" class="form-control"></div>
+            <div class="form-group"><label class="form-label">Date of Birth</label><input type="date" id="prof-dob" class="form-control"></div>
+            <div class="form-group"><label class="form-label">Gender</label><select id="prof-gender" class="form-control"><option value="male">Male</option><option value="female">Female</option><option value="other">Other</option></select></div>
+            <div class="form-group"><label class="form-label">Blood Group</label><input type="text" id="prof-blood" class="form-control" placeholder="e.g. O+"></div>
+            <div class="form-group"><label class="form-label">City</label><input type="text" id="prof-city" class="form-control"></div>
+          </div>
+          <h3 style="margin-top:24px;margin-bottom:16px;">Medical Information</h3>
+          <div class="grid-2">
+            <div class="form-group"><label class="form-label">Allergies</label><input type="text" id="prof-allergies" class="form-control" placeholder="Any known allergies?"></div>
+            <div class="form-group"><label class="form-label">Chronic Conditions</label><input type="text" id="prof-chronic" class="form-control" placeholder="e.g. Diabetes, Hypertension"></div>
+          </div>
+        </div>
+      </div>
     </main>
   </div>
 </div>
@@ -141,8 +165,8 @@ function showPage(page) {
   document.querySelectorAll('[id^="page-"]').forEach(p=>p.classList.add('hidden'));
   document.getElementById(`page-${page}`)?.classList.remove('hidden');
   Sidebar.setActive(page);
-  document.getElementById('page-title').textContent = {dashboard:'My Health Dashboard',appointments:'My Appointments',records:'Medical Records',prescriptions:'Prescriptions',bills:'Bills & Payments',doctors:'Find Doctors'}[page]||page;
-  const loaders = {appointments:loadAppointments, records:loadRecords, prescriptions:loadPrescriptions, bills:loadBills, doctors:loadDoctors};
+  document.getElementById('page-title').textContent = {dashboard:'My Health Dashboard',appointments:'My Appointments',records:'Medical Records',prescriptions:'Prescriptions',bills:'Bills & Payments',doctors:'Find Doctors',profile:'My Profile'}[page]||page;
+  const loaders = {appointments:loadAppointments, records:loadRecords, prescriptions:loadPrescriptions, bills:loadBills, doctors:loadDoctors, profile:loadProfile};
   if (loaders[page]) loaders[page]();
 }
 
@@ -167,11 +191,26 @@ async function loadDashboard() {
 
 async function bookAppointment() {
   const meRes = await API.get('/auth/me');
-  // Find patient profile
   const patRes = await API.get('/patients?limit=100');
   const myPat = (patRes?.data||[]).find(p=>p.email === meRes?.user?.email);
-  if (!myPat) { Toast.error('Patient profile not found'); return; }
-  const data = { patient_id:myPat.id, doctor_id:document.getElementById('ba-doctor').value, appointment_date:document.getElementById('ba-date').value, appointment_time:document.getElementById('ba-time').value, type:document.getElementById('ba-type').value, reason:document.getElementById('ba-reason').value };
+  if (!myPat) { Toast.error('Missing profile connection. Refresh page.'); return; }
+  const docId = document.getElementById('ba-doctor').value;
+  const appDate = document.getElementById('ba-date').value;
+  const appTime = document.getElementById('ba-time').value;
+  
+  if (!docId || !appDate || !appTime) { 
+    Toast.error(`Please select a Doctor, Date, and Time.`); 
+    return; 
+  }
+
+  const data = { 
+    patient_id: myPat.id, 
+    doctor_id: docId, 
+    appointment_date: appDate, 
+    appointment_time: appTime, 
+    type: document.getElementById('ba-type').value, 
+    reason: document.getElementById('ba-reason').value 
+  };
   if (!data.doctor_id||!data.appointment_date||!data.appointment_time) { Toast.error('Please fill all fields'); return; }
   const res = await API.post('/appointments', data);
   if (res?.success) { Toast.success('Appointment booked!'); Modal.close('book-appt-modal'); loadDashboard(); }
@@ -195,7 +234,7 @@ async function loadDoctors() {
       <div style="font-size:13px;color:var(--text-muted);margin-bottom:8px;"><i class="fas fa-building" style="width:16px;"></i> ${d.department_name||'—'}</div>
       <div style="font-size:13px;color:var(--text-muted);margin-bottom:8px;"><i class="fas fa-graduation-cap" style="width:16px;"></i> ${d.qualification||'—'}</div>
       <div style="font-size:13px;color:var(--text-muted);margin-bottom:16px;"><i class="fas fa-clock" style="width:16px;"></i> ${d.experience_years} years exp · ₹${d.consultation_fee}</div>
-      <button class="btn btn-primary btn-full btn-sm" onclick="document.getElementById('ba-doctor').value=${d.id};Modal.open('book-appt-modal')"><i class="fas fa-calendar-plus"></i> Book Appointment</button>
+      <button class="btn btn-primary btn-full btn-sm" onclick="document.getElementById('ba-doctor').value='${d.id}';Modal.open('book-appt-modal')"><i class="fas fa-calendar-plus"></i> Book Appointment</button>
     </div>`).join('');
 }
 
@@ -207,6 +246,46 @@ async function loadPrescriptions() { buildTable('rx-table',[{label:'Info',render
 async function loadBills() {
   const res = await API.get('/billing?limit=50');
   buildTable('bills-table',[{label:'Bill No.',key:'bill_number'},{label:'Amount',render:r=>Fmt.currency(r.net_amount)},{label:'Paid',render:r=>`<span class="text-green">${Fmt.currency(r.amount_paid)}</span>`},{label:'Balance',render:r=>`<span class="text-red">${Fmt.currency(r.balance_due)}</span>`},{label:'Status',render:r=>getBadge(r.status)},{label:'Date',render:r=>Fmt.date(r.created_at)}],res?.data,'No bills found');
+}
+
+async function loadProfile() {
+  const meRes = await API.get('/auth/me');
+  const patRes = await API.get('/patients?limit=100');
+  const myPat = (patRes?.data||[]).find(p=>p.email === meRes?.user?.email);
+  myPatientId = myPat?.id || myPat?._id || null;
+  
+  if (myPat) {
+    document.getElementById('prof-name').value = myPat.name || '';
+    document.getElementById('prof-phone').value = myPat.phone || '';
+    document.getElementById('prof-dob').value = myPat.dob ? myPat.dob.split('T')[0] : '';
+    document.getElementById('prof-gender').value = myPat.gender || 'male';
+    document.getElementById('prof-blood').value = myPat.blood_group || '';
+    document.getElementById('prof-city').value = myPat.city || '';
+    document.getElementById('prof-allergies').value = myPat.allergies || '';
+    document.getElementById('prof-chronic').value = myPat.chronic_conditions || '';
+  }
+}
+
+async function saveProfile() {
+  if (!myPatientId) { Toast.error('Profile ID missing, cannot save yet.'); return; }
+  const data = {
+    name: document.getElementById('prof-name').value,
+    phone: document.getElementById('prof-phone').value,
+    dob: document.getElementById('prof-dob').value,
+    gender: document.getElementById('prof-gender').value,
+    blood_group: document.getElementById('prof-blood').value,
+    city: document.getElementById('prof-city').value,
+    allergies: document.getElementById('prof-allergies').value,
+    chronic_conditions: document.getElementById('prof-chronic').value
+  };
+  const res = await API.put(`/patients/${myPatientId}`, data);
+  if (res?.success) {
+    Toast.success('Profile updated successfully!');
+    document.getElementById('sidebar-user-name').textContent = data.name || 'Patient';
+    document.getElementById('greeting').textContent = `Hello, ${data.name} 👋`;
+  } else {
+    Toast.error(res?.message || 'Failed to update profile');
+  }
 }
 </script>
 </body>

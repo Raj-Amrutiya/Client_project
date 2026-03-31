@@ -4,7 +4,7 @@ const ctrl   = require('../controllers/patientController');
 const auth   = require('../middleware/auth');
 const role   = require('../middleware/roleCheck');
 
-router.get('/',              auth, role('admin','doctor','receptionist'),           ctrl.getAll);
+router.get('/',              auth, role('admin','doctor','receptionist','patient'), ctrl.getAll);
 router.get('/:id',           auth,                                                  ctrl.getOne);
 router.post('/',             auth, role('admin','receptionist'),                    ctrl.create);
 router.put('/:id',           auth, role('admin','receptionist','patient'),          ctrl.update);

@@ -1,5 +1,6 @@
 // server/server.js  — Express main entry point
 require('dotenv').config();
+require('./config/db'); // MongoDB connection
 const express = require('express');
 const cors    = require('cors');
 const morgan  = require('morgan');
