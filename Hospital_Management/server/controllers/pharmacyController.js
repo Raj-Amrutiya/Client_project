@@ -1,6 +1,10 @@
 // server/controllers/pharmacyController.js
 const Medicine      = require('../models/Medicine');
 const MedicineStock = require('../models/MedicineStock');
+const Prescription  = require('../models/Prescription');
+const Patient       = require('../models/Patient');
+const Billing       = require('../models/Billing');
+const Notification  = require('../models/Notification');
 
 // ── MEDICINES ─────────────────────────────────────────────────────────────────
 
@@ -146,5 +150,137 @@ exports.getStats = async (req, res) => {
       low_stock,
       expiring_soon,
     }});
+  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+};
+
+// ── PRESCRIPTIONS (Pharmacy Fulfillment) ───────────────────────────────────
+
+// GET /api/pharmacy/prescriptions (get pending prescriptions)
+exports.getPrescriptions = async (req, res) => {
+  try {
+    const { status = 'pending', patient_id, page = 1, limit = 20 } = req.query;
+    const skip = (page - 1) * limit;
+    const filter = { status };
+
+    if (patient_id) filter.patient_id = patient_id;
+
+    const prescriptions = await Prescription.find(filter)
+      .populate({ path: 'patient_id', populate: { path: 'user_id', select: 'name phone' } })
+      .populate({ path: 'doctor_id', populate: { path: 'user_id', select: 'name' } })
+      .sort({ created_at: -1 })
+      .skip(Number(skip))
+      .limit(Number(limit));
+
+    const total = await Prescription.countDocuments(filter);
+
+    const rows = prescriptions.map(p => {
+      const obj = p.toObject();
+      obj.patient_name = p.patient_id?.user_id?.name || '';
+      obj.patient_code = p.patient_id?.patient_id || '';
+      obj.doctor_name = p.doctor_id?.user_id?.name || '';
+      return obj;
+    });
+
+    res.json({ success: true, data: rows, total, page: Number(page), limit: Number(limit) });
+  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+};
+
+// GET /api/pharmacy/prescriptions/:id
+exports.getPrescription = async (req, res) => {
+  try {
+    const prescription = await Prescription.findById(req.params.id)
+      .populate({ path: 'patient_id', populate: { path: 'user_id', select: 'name phone' } })
+      .populate({ path: 'doctor_id', populate: { path: 'user_id', select: 'name' } });
+
+    if (!prescription) return res.status(404).json({ success: false, message: 'Prescription not found' });
+
+    const obj = prescription.toObject();
+    obj.patient_name = prescription.patient_id?.user_id?.name || '';
+    obj.doctor_name = prescription.doctor_id?.user_id?.name || '';
+
+    res.json({ success: true, data: obj });
+  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+};
+
+// POST /api/pharmacy/prescriptions/:id/dispense (dispense medicines)
+exports.dispenseMedicines = async (req, res) => {
+  try {
+    const { items } = req.body; // items: [{ index, quantity, price }, ...]
+
+    const prescription = await Prescription.findById(req.params.id);
+    if (!prescription) return res.status(404).json({ success: false, message: 'Prescription not found' });
+
+    if (prescription.status !== 'pending') {
+      return res.status(400).json({ success: false, message: `Cannot dispense ${prescription.status} prescription` });
+    }
+
+    let totalCost = 0;
+    const dispensedItems = [];
+
+    // Update prescription items with dispensed info
+    prescription.items.forEach((item, idx) => {
+      const dispenseInfo = items.find(i => i.index === idx);
+      if (dispenseInfo) {
+        item.dispensed = true;
+        item.dispensed_date = new Date();
+        item.price = dispenseInfo.price || 0;
+        totalCost += item.price;
+        dispensedItems.push(item);
+      }
+    });
+
+    prescription.status = 'dispensed';
+    prescription.dispensed_by = req.user.id;
+    prescription.dispensed_at = new Date();
+    await prescription.save();
+
+    // Create billing entry for medicine cost
+    if (totalCost > 0) {
+      const billingItems = dispensedItems.map(item => ({
+        description: `Medicine: ${item.medicine_name} (${item.dosage}, ${item.quantity}*)`,
+        quantity: item.quantity,
+        unit_price: item.price / item.quantity,
+        amount: item.price,
+        type: 'pharmacy'
+      }));
+
+      await Billing.create({
+        patient_id: prescription.patient_id,
+        billing_date: new Date(),
+        items: billingItems,
+        total_amount: totalCost,
+        status: 'pending'
+      });
+    }
+
+    // Notify patient
+    const patient = await Patient.findById(prescription.patient_id);
+    if (patient) {
+      await Notification.create({
+        user_id: patient.user_id,
+        title: 'Medicines Dispensed',
+        message: `Prescription ${prescription.prescription_number} medicines have been dispensed`,
+        type: 'pharmacy'
+      });
+    }
+
+    res.json({ success: true, message: 'Medicines dispensed successfully', totalCost });
+  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+};
+
+// PUT /api/pharmacy/prescriptions/:id/cancel
+exports.cancelPrescription = async (req, res) => {
+  try {
+    const prescription = await Prescription.findById(req.params.id);
+    if (!prescription) return res.status(404).json({ success: false, message: 'Prescription not found' });
+
+    if (['dispensed', 'cancelled'].includes(prescription.status)) {
+      return res.status(400).json({ success: false, message: `Cannot cancel ${prescription.status} prescription` });
+    }
+
+    prescription.status = 'cancelled';
+    await prescription.save();
+
+    res.json({ success: true, message: 'Prescription cancelled' });
   } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 };

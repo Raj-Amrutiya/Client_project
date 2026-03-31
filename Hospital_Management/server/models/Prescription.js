@@ -8,6 +8,10 @@ const prescriptionItemSchema = new mongoose.Schema({
   duration:      { type: String, default: null },
   instructions:  { type: String, default: null },
   quantity:      { type: Number, default: 1 },
+  medicine_id:   { type: mongoose.Schema.Types.ObjectId, ref: 'Medicine', default: null },
+  price:         { type: Number, default: 0 },
+  dispensed:     { type: Boolean, default: false },
+  dispensed_date:{ type: Date, default: null },
 }, { _id: true });
 
 const prescriptionSchema = new mongoose.Schema({
@@ -17,6 +21,12 @@ const prescriptionSchema = new mongoose.Schema({
   doctor_id:           { type: mongoose.Schema.Types.ObjectId, ref: 'Doctor', required: true },
   notes:               { type: String, default: null },
   items:               [prescriptionItemSchema],
-}, { timestamps: { createdAt: 'created_at', updatedAt: false } });
+  status:              { type: String, enum: ['pending', 'dispensed', 'cancelled'], default: 'pending' },
+  dispensed_by:        { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+  dispensed_at:        { type: Date, default: null },
+}, { timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' } });
+
+prescriptionSchema.index({ patient_id: 1 });
+prescriptionSchema.index({ status: 1 });
 
 module.exports = mongoose.model('Prescription', prescriptionSchema);

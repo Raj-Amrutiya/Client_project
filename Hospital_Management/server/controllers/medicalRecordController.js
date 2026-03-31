@@ -2,6 +2,8 @@
 const MedicalRecord = require('../models/MedicalRecord');
 const Prescription  = require('../models/Prescription');
 const Doctor        = require('../models/Doctor');
+const Patient       = require('../models/Patient');
+const User          = require('../models/User');
 const Appointment   = require('../models/Appointment');
 
 const genPrescNo = () => 'RX' + Date.now().toString().slice(-8);
@@ -53,8 +55,29 @@ exports.create = async (req, res) => {
 exports.getOne = async (req, res) => {
   try {
     const mr = await MedicalRecord.findById(req.params.id)
-      .populate({ path: 'doctor_id', populate: { path: 'user_id', select: 'name' } });
+      .populate({ path: 'doctor_id', populate: { path: 'user_id', select: 'name' } })
+      .populate({ path: 'patient_id', select: 'user_id' });
+    
     if (!mr) return res.status(404).json({ success: false, message: 'Not found' });
+
+    // Access control: only admin, the doctor who created it, or the patient can view
+    if (req.user.role !== 'admin') {
+      if (req.user.role === 'doctor') {
+        if (!mr.doctor_id._id.equals(req.user.id)) {
+          const doc = await Doctor.findOne({ user_id: req.user.id });
+          if (!doc || !doc._id.equals(mr.doctor_id._id)) {
+            return res.status(403).json({ success: false, message: 'Access denied' });
+          }
+        }
+      } else if (req.user.role === 'patient') {
+        const pat = await Patient.findOne({ user_id: req.user.id });
+        if (!pat || !pat._id.equals(mr.patient_id._id)) {
+          return res.status(403).json({ success: false, message: 'Access denied' });
+        }
+      } else {
+        return res.status(403).json({ success: false, message: 'Access denied' });
+      }
+    }
 
     const prescriptions = await Prescription.find({ medical_record_id: mr._id });
 
@@ -71,5 +94,46 @@ exports.getOne = async (req, res) => {
     });
 
     res.json({ success: true, data: obj });
+  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+};
+
+// GET /api/medical-records (get all for a patient - with access control)
+exports.getAll = async (req, res) => {
+  try {
+    const { patient_id, page = 1, limit = 20 } = req.query;
+    const skip = (page - 1) * limit;
+    let filter = {};
+
+    // Access control
+    if (req.user.role === 'patient') {
+      const pat = await Patient.findOne({ user_id: req.user.id });
+      if (!pat) return res.status(403).json({ success: false, message: 'Patient record not found' });
+      filter.patient_id = pat._id;
+    } else if (req.user.role === 'doctor') {
+      const doc = await Doctor.findOne({ user_id: req.user.id });
+      if (!doc) return res.status(403).json({ success: false, message: 'Doctor record not found' });
+      filter.doctor_id = doc._id;
+    } else if (req.user.role === 'admin') {
+      // Admin can filter by patient_id if provided
+      if (patient_id) filter.patient_id = patient_id;
+    } else {
+      return res.status(403).json({ success: false, message: 'Access denied' });
+    }
+
+    const records = await MedicalRecord.find(filter)
+      .populate({ path: 'doctor_id', populate: { path: 'user_id', select: 'name' } })
+      .sort({ created_at: -1 })
+      .skip(Number(skip))
+      .limit(Number(limit));
+
+    const total = await MedicalRecord.countDocuments(filter);
+
+    const data = records.map(r => {
+      const obj = r.toObject();
+      obj.doctor_name = r.doctor_id?.user_id?.name || '';
+      return obj;
+    });
+
+    res.json({ success: true, data, total, page: Number(page), limit: Number(limit) });
   } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 };

@@ -148,3 +148,80 @@ exports.todaySummary = async (req, res) => {
     res.json({ success: true, data: stats[0] || { total: 0, pending: 0, confirmed: 0, completed: 0, cancelled: 0 } });
   } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 };
+
+// PUT /api/appointments/:id/reschedule
+exports.reschedule = async (req, res) => {
+  try {
+    const { appointment_date, appointment_time } = req.body;
+    if (!appointment_date || !appointment_time) {
+      return res.status(400).json({ success: false, message: 'New date and time required' });
+    }
+
+    const appointment = await Appointment.findById(req.params.id);
+    if (!appointment) return res.status(404).json({ success: false, message: 'Appointment not found' });
+
+    // Check if appointment can be rescheduled (not completed/cancelled)
+    if (['completed', 'cancelled', 'no_show'].includes(appointment.status)) {
+      return res.status(400).json({ success: false, message: `Cannot reschedule ${appointment.status} appointment` });
+    }
+
+    // Check slot availability for new time
+    const dateObj = new Date(appointment_date);
+    const conflict = await Appointment.findOne({
+      _id: { $ne: appointment._id },
+      doctor_id: appointment.doctor_id,
+      appointment_time,
+      appointment_date: { $gte: dateObj, $lt: new Date(dateObj.getTime() + 86400000) },
+      status: { $in: ['pending', 'confirmed', 'in_progress'] },
+    });
+
+    if (conflict) {
+      return res.status(400).json({ success: false, message: 'Time slot not available for doctor' });
+    }
+
+    appointment.appointment_date = new Date(appointment_date);
+    appointment.appointment_time = appointment_time;
+    await appointment.save();
+
+    // Notify patient
+    const pat = await Patient.findById(appointment.patient_id);
+    if (pat) {
+      await Notification.create({
+        user_id: pat.user_id,
+        title: 'Appointment Rescheduled',
+        message: `Appointment ${appointment.appointment_number} rescheduled to ${appointment_date} at ${appointment_time}`,
+        type: 'appointment'
+      });
+    }
+
+    res.json({ success: true, message: 'Appointment rescheduled successfully' });
+  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+};
+
+// DELETE /api/appointments/:id (or PUT /api/appointments/:id/cancel)
+exports.cancel = async (req, res) => {
+  try {
+    const appointment = await Appointment.findById(req.params.id);
+    if (!appointment) return res.status(404).json({ success: false, message: 'Appointment not found' });
+
+    if (['completed', 'cancelled', 'no_show'].includes(appointment.status)) {
+      return res.status(400).json({ success: false, message: `Cannot cancel ${appointment.status} appointment` });
+    }
+
+    appointment.status = 'cancelled';
+    await appointment.save();
+
+    // Notify patient
+    const pat = await Patient.findById(appointment.patient_id);
+    if (pat) {
+      await Notification.create({
+        user_id: pat.user_id,
+        title: 'Appointment Cancelled',
+        message: `Appointment ${appointment.appointment_number} has been cancelled`,
+        type: 'appointment'
+      });
+    }
+
+    res.json({ success: true, message: 'Appointment cancelled' });
+  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+};
